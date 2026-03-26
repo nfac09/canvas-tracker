@@ -1,7 +1,16 @@
 // Canvas Tracker — Electron preload script
-// Runs in renderer context with access to Node APIs before the page loads.
-// We don't expose any native APIs (the app is entirely localStorage-based),
-// but this file exists as a security boundary (contextIsolation: true).
+// Bridges secure IPC between the main process and the renderer.
 'use strict'
 
-// Nothing to expose — kept for future native integrations (e.g. file export)
+const { contextBridge, ipcRenderer } = require('electron')
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  // Called once when main process detects a newer GitHub release
+  onUpdateAvailable: (callback) => {
+    ipcRenderer.on('update-available', (_event, info) => callback(info))
+  },
+  // Open a URL in the default system browser
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  // Get the current app version (from package.json)
+  getVersion: () => ipcRenderer.invoke('get-version'),
+})

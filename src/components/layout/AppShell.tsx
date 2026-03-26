@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
+import { UpdateBanner } from '../ui/UpdateBanner'
 
 export function AppShell() {
   return (
@@ -8,6 +9,7 @@ export function AppShell() {
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
+      <UpdateBanner />
     </div>
   )
 }
