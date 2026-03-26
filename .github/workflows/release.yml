@@ -1,0 +1,54 @@
+# Canvas Tracker — Automated release workflow
+#
+# Triggers when a version tag (v*) is pushed to GitHub.
+# Builds the macOS app and publishes it as a GitHub Release.
+#
+# Normal usage (from your terminal in the project):
+#   npm run release          # patch: 1.0.0 → 1.0.1
+#   npm run release:minor    # minor: 1.0.0 → 1.1.0
+#   npm run release:major    # major: 1.0.0 → 2.0.0
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Required for electron-builder to create GitHub releases and upload assets
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish macOS release
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish
+        env:
+          # GITHUB_TOKEN is automatically provided by Actions with contents:write
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run electron:build:ci
+
+      # Optional: upload build artifacts for debugging if the build fails
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release/
+          if-no-files-found: ignore

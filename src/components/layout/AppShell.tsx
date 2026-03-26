@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { UpdateBanner } from '../ui/UpdateBanner'
+import { UpdateModal } from '../ui/UpdateModal'
+import { WhatsNewModal } from '../ui/WhatsNewModal'
 
 export function AppShell() {
   return (
@@ -9,7 +10,9 @@ export function AppShell() {
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
-      <UpdateBanner />
+      {/* Update system — only active when running inside Electron */}
+      <UpdateModal />
+      <WhatsNewModal />
     </div>
   )
 }

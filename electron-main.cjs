@@ -3,13 +3,87 @@
 
 const { app, BrowserWindow, shell, ipcMain } = require('electron')
 const path = require('path')
-const https = require('https')
+const { autoUpdater } = require('electron-updater')
 
-// In dev (not packaged), load from Vite dev server
 const isDev = !app.isPackaged
-
-const GITHUB_REPO = 'nfac09/canvas-tracker'
 let mainWindow = null
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * electron-updater returns releaseNotes as either a string or an array of
+ * { version, note } objects depending on fullChangelog mode. Flatten to string.
+ */
+function flattenNotes(notes) {
+  if (!notes) return ''
+  if (typeof notes === 'string') return notes
+  if (Array.isArray(notes)) return notes.map((n) => n.note ?? '').join('\n')
+  return ''
+}
+
+// ─── Auto-updater ─────────────────────────────────────────────────────────────
+
+function setupAutoUpdater() {
+  if (isDev) return  // don't check for updates in development
+
+  autoUpdater.autoDownload = true         // start downloading immediately when available
+  autoUpdater.autoInstallOnAppQuit = true // install when user quits normally
+  autoUpdater.fullChangelog = false       // only fetch notes for the latest release
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-available', {
+      version: info.version,
+      notes: flattenNotes(info.releaseNotes),
+      publishedAt: info.releaseDate ?? new Date().toISOString(),
+    })
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow?.webContents.send('update-progress', {
+      percent: Math.round(progress.percent),
+      bytesPerSecond: progress.bytesPerSecond,
+      transferred: progress.transferred,
+      total: progress.total,
+    })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow?.webContents.send('update-downloaded', {
+      version: info.version,
+      notes: flattenNotes(info.releaseNotes),
+    })
+  })
+
+  autoUpdater.on('error', (err) => {
+    // Non-fatal — update errors should never crash the app
+    console.error('[updater] error:', err.message)
+    mainWindow?.webContents.send('update-error', { message: err.message })
+  })
+
+  // Check 4s after the window appears — avoids blocking startup render
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('[updater] check failed:', err.message)
+    })
+  }, 4000)
+}
+
+// ─── IPC handlers ─────────────────────────────────────────────────────────────
+
+ipcMain.handle('open-external', (_e, url) => shell.openExternal(url))
+ipcMain.handle('get-version', () => app.getVersion())
+
+ipcMain.handle('install-update', () => {
+  try {
+    autoUpdater.quitAndInstall(false, true)
+  } catch (err) {
+    // Unsigned macOS builds can't auto-install — fall back to GitHub releases page
+    console.error('[updater] install failed:', err.message)
+    shell.openExternal('https://github.com/nfac09/canvas-tracker/releases/latest')
+  }
+})
+
+// ─── Window ───────────────────────────────────────────────────────────────────
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -17,102 +91,49 @@ function createWindow() {
     height: 820,
     minWidth: 960,
     minHeight: 640,
-    // macOS native look: hidden inset keeps traffic lights visible
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 18 },
-    backgroundColor: '#0f172a',
-    show: false, // show after content loads to avoid white flash
+    backgroundColor: '#0d0d13',
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'electron-preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false, // must be false to allow contextBridge with ipcRenderer
+      sandbox: false,  // required for contextBridge + ipcRenderer
     },
   })
 
-  // Show window once the page is ready (avoids white flash)
+  // Show window only after the page has rendered (no white flash)
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
-    // Check for updates shortly after window is shown
-    setTimeout(() => checkForUpdates(), 3000)
+    setupAutoUpdater()
   })
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173')
-    // Uncomment to open DevTools in dev:
-    // mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(path.join(__dirname, 'dist/index.html'))
   }
 
-  // Open external links in the system browser, not Electron
+  // All link opens go to the system browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
     return { action: 'deny' }
   })
 }
 
-// Compare semver strings: returns true if remote > local
-function isNewer(local, remote) {
-  const parse = (v) => v.replace(/^v/, '').split('.').map(Number)
-  const [lMaj, lMin, lPatch] = parse(local)
-  const [rMaj, rMin, rPatch] = parse(remote)
-  if (rMaj !== lMaj) return rMaj > lMaj
-  if (rMin !== lMin) return rMin > lMin
-  return rPatch > lPatch
-}
-
-function checkForUpdates() {
-  const options = {
-    hostname: 'api.github.com',
-    path: `/repos/${GITHUB_REPO}/releases/latest`,
-    headers: { 'User-Agent': 'Canvas-Tracker-App' },
-  }
-
-  https.get(options, (res) => {
-    let data = ''
-    res.on('data', (chunk) => { data += chunk })
-    res.on('end', () => {
-      try {
-        if (res.statusCode !== 200) return
-        const release = JSON.parse(data)
-        const remoteVersion = release.tag_name   // e.g. "v1.2.0"
-        const localVersion = app.getVersion()    // from package.json
-        if (isNewer(localVersion, remoteVersion)) {
-          mainWindow && mainWindow.webContents.send('update-available', {
-            version: remoteVersion,
-            notes: release.body ?? '',
-            url: release.html_url,
-            publishedAt: release.published_at,
-          })
-        }
-      } catch (_) {
-        // Network or parse errors are silently ignored
-      }
-    })
-  }).on('error', () => {
-    // Update check failures are silent — the app works fine without them
-  })
-}
-
-// IPC: renderer asks us to open a URL in the system browser
-ipcMain.handle('open-external', (_event, url) => {
-  shell.openExternal(url)
-})
-
-// IPC: renderer asks for the current app version
-ipcMain.handle('get-version', () => app.getVersion())
+// ─── App lifecycle ────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
   createWindow()
 
-  // macOS: re-create window when dock icon is clicked and no windows are open
+  // macOS: re-create window when dock icon is clicked with no windows open
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// macOS: keep app running when all windows are closed
+// macOS: keep process alive when all windows are closed
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })

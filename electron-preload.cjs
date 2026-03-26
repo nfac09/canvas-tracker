@@ -1,16 +1,25 @@
 // Canvas Tracker — Electron preload script
-// Bridges secure IPC between the main process and the renderer.
+// Bridges the main process and renderer via contextBridge (secure, sandboxed).
 'use strict'
 
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Called once when main process detects a newer GitHub release
-  onUpdateAvailable: (callback) => {
-    ipcRenderer.on('update-available', (_event, info) => callback(info))
-  },
-  // Open a URL in the default system browser
-  openExternal: (url) => ipcRenderer.invoke('open-external', url),
-  // Get the current app version (from package.json)
-  getVersion: () => ipcRenderer.invoke('get-version'),
+  // ─── Update lifecycle ──────────────────────────────────────────────────────
+  // Called when a new version is found on GitHub
+  onUpdateAvailable:  (cb) => ipcRenderer.on('update-available',  (_e, info) => cb(info)),
+  // Called repeatedly during download with { percent, bytesPerSecond, transferred, total }
+  onUpdateProgress:   (cb) => ipcRenderer.on('update-progress',   (_e, info) => cb(info)),
+  // Called when download is complete and ready to install
+  onUpdateDownloaded: (cb) => ipcRenderer.on('update-downloaded', (_e, info) => cb(info)),
+  // Called if the updater encounters an error
+  onUpdateError:      (cb) => ipcRenderer.on('update-error',      (_e, info) => cb(info)),
+
+  // ─── Actions ──────────────────────────────────────────────────────────────
+  // Quit and install the downloaded update (falls back to GitHub page if unsigned)
+  installUpdate:  ()      => ipcRenderer.invoke('install-update'),
+  // Open a URL in the system default browser
+  openExternal:   (url)   => ipcRenderer.invoke('open-external', url),
+  // Returns the app version from package.json
+  getVersion:     ()      => ipcRenderer.invoke('get-version'),
 })

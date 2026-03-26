@@ -12,7 +12,11 @@
     "preview": "vite preview",
     "electron:dev": "concurrently -k -n VITE,ELECTRON -c cyan,magenta \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "tsc -b && vite build && electron-builder --mac",
-    "electron:build:dir": "tsc -b && vite build && electron-builder --mac --dir"
+    "electron:build:dir": "tsc -b && vite build && electron-builder --mac --dir",
+    "electron:build:ci": "tsc -b && vite build && electron-builder --mac --publish always",
+    "release": "bash scripts/release.sh patch",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major"
   },
   "build": {
     "appId": "com.canvastracker.app",
@@ -27,21 +31,32 @@
       "output": "release",
       "buildResources": "build-resources"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "nfac09",
+      "repo": "canvas-tracker",
+      "releaseType": "release"
+    },
     "mac": {
       "category": "public.app-category.education",
       "target": [
-        { "target": "dmg", "arch": ["arm64", "x64"] }
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
       ],
       "minimumSystemVersion": "12.0"
     },
     "dmg": {
       "title": "Canvas Tracker",
       "background": null,
-      "window": { "width": 540, "height": 380 }
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     }
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "electron-updater": "^6.8.3",
     "ical.js": "^2.2.1",
     "immer": "^11.1.4",
     "nanoid": "^5.1.7",
