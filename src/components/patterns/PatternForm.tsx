@@ -18,18 +18,21 @@ interface PatternFormProps {
   defaultCourseId?: string
 }
 
-const DAYS: { value: DayOfWeek; label: string; short: string }[] = [
-  { value: 0, label: 'Sunday', short: 'Su' },
-  { value: 1, label: 'Monday', short: 'Mo' },
-  { value: 2, label: 'Tuesday', short: 'Tu' },
-  { value: 3, label: 'Wednesday', short: 'We' },
-  { value: 4, label: 'Thursday', short: 'Th' },
-  { value: 5, label: 'Friday', short: 'Fr' },
-  { value: 6, label: 'Saturday', short: 'Sa' },
+const DAYS: { value: DayOfWeek; short: string; label: string }[] = [
+  { value: 0, short: 'Su', label: 'Sunday' },
+  { value: 1, short: 'Mo', label: 'Monday' },
+  { value: 2, short: 'Tu', label: 'Tuesday' },
+  { value: 3, short: 'We', label: 'Wednesday' },
+  { value: 4, short: 'Th', label: 'Thursday' },
+  { value: 5, short: 'Fr', label: 'Friday' },
+  { value: 6, short: 'Sa', label: 'Saturday' },
 ]
 
 const categories: AssignmentCategory[] = ['discussion', 'quiz', 'lab', 'exam', 'homework', 'other']
 const priorities: AssignmentPriority[] = ['low', 'medium', 'high']
+
+const inputCls = 'w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-sm focus:ring-indigo-500 focus:border-indigo-500'
+const labelCls = 'block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5'
 
 export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: PatternFormProps) {
   const courses = useStore((s) => s.courses)
@@ -93,7 +96,7 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
       title: form.title.trim(),
       dayOfWeek: form.dayOfWeek,
       dueTime: form.dueTime,
-      category: form.category || undefined,
+      category: (form.category || undefined) as AssignmentCategory | undefined,
       priority: form.priority,
       notes: form.notes.trim() || undefined,
       startDate: form.startDate,
@@ -110,52 +113,46 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? 'Edit Recurring Pattern' : 'Add Recurring Pattern'}
-    >
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Pattern' : 'Add Recurring Pattern'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Course *</label>
+          <label className={labelCls}>Course *</label>
           <select
             value={form.courseId}
             onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className={inputCls}
             required
           >
             <option value="">Select course…</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Assignment Title *</label>
+          <label className={labelCls}>Assignment Title *</label>
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className={inputCls}
             placeholder="e.g. Weekly Discussion Post"
             required
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">Day of Week *</label>
-          <div className="flex gap-1">
+          <label className={labelCls}>Day of Week *</label>
+          <div className="flex gap-1.5">
             {DAYS.map((day) => (
               <button
                 key={day.value}
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, dayOfWeek: day.value }))}
-                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors
-                  ${form.dayOfWeek === day.value
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
                 title={day.label}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors
+                  ${form.dayOfWeek === day.value
+                    ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
               >
                 {day.short}
               </button>
@@ -164,23 +161,23 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Due Time *</label>
+          <label className={labelCls}>Due Time *</label>
           <input
             type="time"
             value={form.dueTime}
             onChange={(e) => setForm((f) => ({ ...f, dueTime: e.target.value }))}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className={inputCls}
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+            <label className={labelCls}>Category</label>
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as AssignmentCategory | '' }))}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className={inputCls}
             >
               <option value="">None</option>
               {categories.map((c) => (
@@ -189,11 +186,11 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+            <label className={labelCls}>Priority</label>
             <select
               value={form.priority}
               onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as AssignmentPriority }))}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className={inputCls}
             >
               {priorities.map((p) => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
@@ -204,33 +201,33 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
+            <label className={labelCls}>Start Date *</label>
             <input
               type="date"
               value={form.startDate}
               onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className={inputCls}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
+            <label className={labelCls}>End Date</label>
             <input
               type="date"
               value={form.endDate}
               onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className={inputCls}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+          <label className={labelCls}>Notes</label>
           <textarea
             value={form.notes}
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
             rows={2}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+            className={`${inputCls} resize-none`}
             placeholder="Optional notes…"
           />
         </div>
@@ -241,14 +238,16 @@ export function PatternForm({ open, onClose, pattern, defaultCourseId = '' }: Pa
             type="checkbox"
             checked={form.active}
             onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))}
-            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
           />
-          <label htmlFor="active" className="text-sm text-gray-700">Active (generate assignments)</label>
+          <label htmlFor="active" className="text-sm text-slate-700 dark:text-slate-300">
+            Active (generate assignments automatically)
+          </label>
         </div>
 
         {isEdit && (
-          <p className="text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
-            Changes will update future unedited occurrences.
+          <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
+            Changes will update future unedited occurrences only.
           </p>
         )}
 

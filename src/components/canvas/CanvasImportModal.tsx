@@ -71,32 +71,29 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Import from Canvas" size="md">
+    <Modal open={open} onClose={handleClose} title="Import from Canvas">
       <div className="space-y-4">
-        {/* How-to banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
-          <strong>How to get your Canvas calendar:</strong>
-          <br />
-          In Canvas, go to Calendar → click the gear icon → "Calendar Feed" → copy the URL, or
-          click "Export" to download an .ics file.
+        {/* Info banner */}
+        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+          <strong>How to get your Canvas calendar:</strong>{' '}
+          Calendar → gear icon → "Calendar Feed" to copy the URL, or "Export" to download a .ics file.
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
-          <button
-            onClick={() => setTab('file')}
-            className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors
-              ${tab === 'file' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Upload .ics file
-          </button>
-          <button
-            onClick={() => setTab('url')}
-            className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors
-              ${tab === 'url' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Paste URL
-          </button>
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          {(['file', 'url'] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors
+                ${tab === t
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+            >
+              {t === 'file' ? 'Upload .ics file' : 'Paste URL'}
+            </button>
+          ))}
         </div>
 
         {tab === 'file' && (
@@ -110,7 +107,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             />
             <button
               onClick={() => fileRef.current?.click()}
-              className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+              className="w-full border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl py-8 text-sm text-slate-400 dark:text-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               <span className="block text-2xl mb-2">📂</span>
               Click to choose an .ics file
@@ -120,14 +117,14 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
 
         {tab === 'url' && (
           <div className="space-y-2">
-            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
-              Uses a CORS proxy (allorigins.win) to fetch the URL. Do not use with sensitive URLs.
-            </div>
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+              Uses a CORS proxy to fetch the URL. Do not paste sensitive links.
+            </p>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="https://canvas.instructure.com/feeds/calendars/..."
+              className="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="https://canvas.instructure.com/feeds/calendars/…"
             />
             <Button
               variant="primary"
@@ -140,32 +137,30 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
           </div>
         )}
 
-        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl p-3 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
 
-        {/* Result */}
         {result && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-green-800 mb-2">Import complete!</p>
+          <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-xl p-4">
+            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-3">
+              Import complete
+            </p>
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-lg font-bold text-green-700">{result.itemsCreated}</p>
-                <p className="text-xs text-green-600">Created</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-blue-700">{result.itemsUpdated}</p>
-                <p className="text-xs text-blue-600">Updated</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-500">{result.itemsSkipped}</p>
-                <p className="text-xs text-gray-400">Skipped</p>
-              </div>
+              {[
+                { label: 'Created', value: result.itemsCreated, color: 'text-emerald-700 dark:text-emerald-400' },
+                { label: 'Updated', value: result.itemsUpdated, color: 'text-blue-700 dark:text-blue-400' },
+                { label: 'Skipped', value: result.itemsSkipped, color: 'text-slate-500 dark:text-slate-500' },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-white dark:bg-slate-800 rounded-lg py-2">
+                  <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{stat.label}</p>
+                </div>
+              ))}
             </div>
-            <p className="text-xs text-green-600 text-center mt-2">
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 text-center mt-2">
               Safe to re-import — duplicates are automatically skipped.
             </p>
           </div>

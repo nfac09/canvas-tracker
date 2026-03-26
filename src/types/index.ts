@@ -52,6 +52,13 @@ export interface Assignment {
   isPatternOverride?: boolean
   isSkipped?: boolean
   canvasUid?: string
+
+  // Grade fields
+  pointsEarned?: number
+  pointsPossible?: number
+  letterGrade?: string
+  gradeFeedback?: string
+
   createdAt: string
   updatedAt: string
 }
@@ -69,5 +76,5 @@ export interface CanvasImportSession {
 export interface AppSettings {
   weekStartsOn: 0 | 1
   recurringGenerationWeeksAhead: number
-  theme: 'light'
+  theme: 'light' | 'dark'
 }

@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  body {
+    margin: 0;
+  }
 }

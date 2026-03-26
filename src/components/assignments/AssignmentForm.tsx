@@ -23,6 +23,9 @@ const statusLabels: Record<AssignmentStatus, string> = {
   done: 'Done',
 }
 
+const inputCls = 'w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 text-sm focus:ring-indigo-500 focus:border-indigo-500'
+const labelCls = 'block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5'
+
 export function AssignmentForm({
   open,
   onClose,
@@ -46,7 +49,12 @@ export function AssignmentForm({
     priority: 'medium' as AssignmentPriority,
     category: '' as AssignmentCategory | '',
     notes: '',
+    pointsEarned: '',
+    pointsPossible: '',
+    letterGrade: '',
+    gradeFeedback: '',
   })
+  const [gradeOpen, setGradeOpen] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -60,7 +68,12 @@ export function AssignmentForm({
           priority: assignment.priority,
           category: assignment.category ?? '',
           notes: assignment.notes ?? '',
+          pointsEarned: assignment.pointsEarned !== undefined ? String(assignment.pointsEarned) : '',
+          pointsPossible: assignment.pointsPossible !== undefined ? String(assignment.pointsPossible) : '',
+          letterGrade: assignment.letterGrade ?? '',
+          gradeFeedback: assignment.gradeFeedback ?? '',
         })
+        setGradeOpen(!!(assignment.pointsEarned !== undefined || assignment.letterGrade))
       } else {
         setForm({
           title: '',
@@ -71,7 +84,12 @@ export function AssignmentForm({
           priority: 'medium',
           category: '',
           notes: '',
+          pointsEarned: '',
+          pointsPossible: '',
+          letterGrade: '',
+          gradeFeedback: '',
         })
+        setGradeOpen(false)
       }
     }
   }, [open, assignment, defaultCourseId, defaultDueDate])
@@ -80,16 +98,20 @@ export function AssignmentForm({
     e.preventDefault()
     if (!form.title.trim() || !form.courseId || !form.dueDate) return
 
-    const payload = {
+    const payload: Partial<Assignment> = {
       title: form.title.trim(),
       courseId: form.courseId,
       dueDate: form.dueDate,
       dueTime: form.dueTime || undefined,
       status: form.status,
       priority: form.priority,
-      category: form.category || undefined,
+      category: (form.category || undefined) as AssignmentCategory | undefined,
       notes: form.notes.trim() || undefined,
-      source: (isEdit ? assignment.source : 'manual') as Assignment['source'],
+      source: isEdit ? assignment.source : 'manual',
+      pointsEarned: form.pointsEarned !== '' ? Number(form.pointsEarned) : undefined,
+      pointsPossible: form.pointsPossible !== '' ? Number(form.pointsPossible) : undefined,
+      letterGrade: form.letterGrade.trim() || undefined,
+      gradeFeedback: form.gradeFeedback.trim() || undefined,
     }
 
     if (isEdit) {
@@ -98,16 +120,14 @@ export function AssignmentForm({
         isPatternOverride: isRecurring ? true : assignment.isPatternOverride,
       })
     } else {
-      addAssignment(payload)
+      addAssignment(payload as Omit<Assignment, 'id' | 'createdAt' | 'updatedAt'>)
     }
     onClose()
   }
 
-  const field = (name: keyof typeof form) => ({
-    value: form[name] as string,
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-      setForm((f) => ({ ...f, [name]: e.target.value })),
-  })
+  const set = (name: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm((f) => ({ ...f, [name]: e.target.value }))
 
   return (
     <Modal
@@ -116,76 +136,58 @@ export function AssignmentForm({
       title={isEdit ? 'Edit Assignment' : 'Add Assignment'}
     >
       {isRecurring && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+        <div className="mb-4 px-3 py-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-800 dark:text-amber-400">
           ↺ This is a recurring assignment. Saving will edit only this occurrence.
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Title */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+          <label className={labelCls}>Title *</label>
           <input
-            {...field('title')}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            value={form.title}
+            onChange={set('title')}
+            className={inputCls}
             placeholder="Assignment title"
             required
           />
         </div>
 
+        {/* Course */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Course *</label>
-          <select
-            {...field('courseId')}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-            required
-          >
+          <label className={labelCls}>Course *</label>
+          <select value={form.courseId} onChange={set('courseId')} className={inputCls} required>
             <option value="">Select course…</option>
             {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
 
+        {/* Date + Time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Due Date *</label>
-            <input
-              type="date"
-              {...field('dueDate')}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
+            <label className={labelCls}>Due Date *</label>
+            <input type="date" value={form.dueDate} onChange={set('dueDate')} className={inputCls} required />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Due Time</label>
-            <input
-              type="time"
-              {...field('dueTime')}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-            />
+            <label className={labelCls}>Due Time</label>
+            <input type="time" value={form.dueTime} onChange={set('dueTime')} className={inputCls} />
           </div>
         </div>
 
+        {/* Status + Priority */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-            <select
-              {...field('status')}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>{statusLabels[s]}</option>
-              ))}
+            <label className={labelCls}>Status</label>
+            <select value={form.status} onChange={set('status')} className={inputCls}>
+              {statuses.map((s) => <option key={s} value={s}>{statusLabels[s]}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-            <select
-              {...field('priority')}
-              className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-            >
+            <label className={labelCls}>Priority</label>
+            <select value={form.priority} onChange={set('priority')} className={inputCls}>
               {priorities.map((p) => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
               ))}
@@ -193,12 +195,10 @@ export function AssignmentForm({
           </div>
         </div>
 
+        {/* Category */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-          <select
-            {...field('category')}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-          >
+          <label className={labelCls}>Category</label>
+          <select value={form.category} onChange={set('category')} className={inputCls}>
             <option value="">No category</option>
             {categories.map((c) => (
               <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
@@ -206,20 +206,92 @@ export function AssignmentForm({
           </select>
         </div>
 
+        {/* Notes */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+          <label className={labelCls}>Notes</label>
           <textarea
-            {...field('notes')}
+            value={form.notes}
+            onChange={set('notes')}
             rows={2}
-            className="w-full rounded-lg border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+            className={`${inputCls} resize-none`}
             placeholder="Optional notes…"
           />
         </div>
 
+        {/* Grade section (collapsible) */}
+        <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+          <button
+            type="button"
+            onClick={() => setGradeOpen((v) => !v)}
+            className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors w-full text-left"
+          >
+            <span>{gradeOpen ? '▼' : '▶'}</span>
+            Grade (optional)
+            {(form.pointsEarned || form.letterGrade) && (
+              <span className="text-indigo-500 ml-1">•</span>
+            )}
+          </button>
+
+          {gradeOpen && (
+            <div className="mt-3 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Points Earned</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.pointsEarned}
+                    onChange={set('pointsEarned')}
+                    className={inputCls}
+                    placeholder="e.g. 87"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Points Possible</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.pointsPossible}
+                    onChange={set('pointsPossible')}
+                    className={inputCls}
+                    placeholder="e.g. 100"
+                  />
+                </div>
+              </div>
+              {form.pointsEarned && form.pointsPossible && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Score: {Math.round((Number(form.pointsEarned) / Number(form.pointsPossible)) * 100)}%
+                </p>
+              )}
+              <div>
+                <label className={labelCls}>Letter Grade</label>
+                <input
+                  value={form.letterGrade}
+                  onChange={set('letterGrade')}
+                  className={inputCls}
+                  placeholder="e.g. A, B+, 92%"
+                  maxLength={10}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Feedback / Comments</label>
+                <textarea
+                  value={form.gradeFeedback}
+                  onChange={set('gradeFeedback')}
+                  rows={2}
+                  className={`${inputCls} resize-none`}
+                  placeholder="Instructor feedback or your notes about this grade…"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
         <div className="flex gap-2 justify-end pt-1">
-          <Button variant="secondary" type="button" onClick={onClose}>
-            Cancel
-          </Button>
+          <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit">
             {isEdit ? 'Save Changes' : 'Add Assignment'}
           </Button>
