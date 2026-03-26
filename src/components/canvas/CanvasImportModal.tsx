@@ -80,14 +80,14 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex gap-1 bg-slate-100 dark:bg-white/[0.05] p-1 rounded-xl">
           {(['file', 'url'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors
                 ${tab === t
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  ? 'bg-white dark:bg-white/[0.1] text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
             >
@@ -107,7 +107,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             />
             <button
               onClick={() => fileRef.current?.click()}
-              className="w-full border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl py-8 text-sm text-slate-400 dark:text-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="w-full border-2 border-dashed border-slate-200 dark:border-white/[0.08] rounded-xl py-8 text-sm text-slate-400 dark:text-slate-500 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               <span className="block text-2xl mb-2">📂</span>
               Click to choose an .ics file
@@ -123,7 +123,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.06] dark:text-slate-100 text-sm focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
               placeholder="https://canvas.instructure.com/feeds/calendars/…"
             />
             <Button
@@ -154,7 +154,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
                 { label: 'Updated', value: result.itemsUpdated, color: 'text-blue-700 dark:text-blue-400' },
                 { label: 'Skipped', value: result.itemsSkipped, color: 'text-slate-500 dark:text-slate-500' },
               ].map((stat) => (
-                <div key={stat.label} className="bg-white dark:bg-slate-800 rounded-lg py-2">
+                <div key={stat.label} className="bg-white dark:bg-white/[0.07] rounded-lg py-2">
                   <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">{stat.label}</p>
                 </div>

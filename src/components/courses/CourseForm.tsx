@@ -11,8 +11,8 @@ interface CourseFormProps {
   course?: Course
 }
 
-const inputCls = 'w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 text-sm focus:ring-indigo-500 focus:border-indigo-500'
-const labelCls = 'block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5'
+const inputCls = 'w-full rounded-lg border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.06] text-slate-900 dark:text-slate-100 dark:placeholder-slate-600 text-sm focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors'
+const labelCls = 'block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5'
 
 export function CourseForm({ open, onClose, course }: CourseFormProps) {
   const addCourse = useStore((s) => s.addCourse)

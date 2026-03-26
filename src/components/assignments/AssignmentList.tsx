@@ -26,36 +26,29 @@ export function AssignmentList({
   sectionTitle,
   badge,
   badgeColor = '#6366F1',
-  accent,
 }: AssignmentListProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
 
   if (collapsible && sectionTitle) {
     return (
-      <div className="mb-7">
+      <div className="mb-8">
         <button
           onClick={() => setCollapsed((c) => !c)}
-          className="flex items-center gap-2.5 mb-3 group w-full text-left"
+          className="flex items-center gap-2 mb-3 group w-full text-left"
         >
-          {accent && (
-            <span
-              className="w-1 h-4 rounded-full shrink-0"
-              style={{ backgroundColor: accent }}
-            />
-          )}
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+          <span className="text-[11px] font-semibold text-slate-400 dark:text-[#4a4a6a] uppercase tracking-widest group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">
             {sectionTitle}
           </span>
           {badge !== undefined && badge > 0 && (
             <span
-              className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold text-white"
+              className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-md text-[10px] font-bold text-white"
               style={{ backgroundColor: badgeColor }}
             >
               {badge}
             </span>
           )}
-          <span className="ml-auto text-slate-300 dark:text-slate-700 text-xs">
-            {collapsed ? '▶' : '▼'}
+          <span className="ml-auto text-[10px] text-slate-300 dark:text-[#3a3a55] transition-colors group-hover:text-slate-400 dark:group-hover:text-slate-600">
+            {collapsed ? '▾' : '▴'}
           </span>
         </button>
 
@@ -65,8 +58,8 @@ export function AssignmentList({
               emptyIcon ? (
                 <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
               ) : (
-                <p className="text-xs text-slate-400 dark:text-slate-600 px-1 py-2">
-                  All clear here!
+                <p className="text-xs text-slate-400 dark:text-[#3a3a58] px-1 py-2">
+                  All clear here.
                 </p>
               )
             ) : (

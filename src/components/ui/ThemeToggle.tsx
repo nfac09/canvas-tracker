@@ -9,10 +9,10 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => updateSettings({ theme: isDark ? 'light' : 'dark' })}
-      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+      className="flex items-center gap-2 w-full px-3 py-[7px] rounded-lg text-[13px] text-slate-500 dark:text-[#8888a8] hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-800 dark:hover:text-white/80 transition-colors"
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <span className="text-base">{isDark ? '☀' : '☾'}</span>
+      <span className="text-[11px] opacity-70">{isDark ? '○' : '●'}</span>
       <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
     </button>
   )

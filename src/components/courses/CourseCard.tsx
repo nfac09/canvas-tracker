@@ -25,25 +25,25 @@ export function CourseCard({ course }: CourseCardProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 hover:shadow-md dark:hover:shadow-none dark:hover:border-slate-700 transition-all">
+      <div className="bg-white dark:bg-[#13131e] rounded-2xl border border-slate-200 dark:border-white/[0.07] p-5 hover:border-slate-300 dark:hover:border-white/[0.12] transition-colors">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: course.color + '22' }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: course.color + '20' }}
             >
               <div
-                className="w-5 h-5 rounded-lg"
+                className="w-4 h-4 rounded-md"
                 style={{ backgroundColor: course.color }}
               />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-tight">
+              <h3 className="font-semibold text-slate-900 dark:text-[#e8e8f2] text-sm leading-tight">
                 {course.name}
               </h3>
-              <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                 {pending > 0 ? (
-                  <span className="text-amber-600 dark:text-amber-500 font-medium">
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
                     {pending} pending
                   </span>
                 ) : (
@@ -59,24 +59,24 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
 
         {course.notes && (
-          <p className="text-xs text-slate-400 dark:text-slate-600 line-clamp-2 mb-3 leading-relaxed">
+          <p className="text-xs text-slate-400 dark:text-slate-500 line-clamp-2 mb-3 leading-relaxed">
             {course.notes}
           </p>
         )}
 
         {count > 0 && (
           <div>
-            <div className="flex justify-between text-xs text-slate-400 dark:text-slate-600 mb-1.5">
+            <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mb-1.5">
               <span>Progress</span>
               <span>{pct}%</span>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all"
                 style={{ width: `${pct}%`, backgroundColor: course.color }}
               />
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1.5">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
               {completed} of {count} completed
             </p>
           </div>

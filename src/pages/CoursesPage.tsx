@@ -10,9 +10,16 @@ export function CoursesPage() {
   const [addOpen, setAddOpen] = useState(false)
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Courses</h1>
+    <div className="px-8 py-8 max-w-3xl mx-auto">
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            Courses
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+            {courses.length} course{courses.length !== 1 ? 's' : ''} total
+          </p>
+        </div>
         <Button variant="primary" onClick={() => setAddOpen(true)}>
           + Add Course
         </Button>
@@ -20,7 +27,7 @@ export function CoursesPage() {
 
       {courses.length === 0 ? (
         <EmptyState
-          icon="📚"
+          icon="○"
           title="No courses yet"
           description="Add your courses first, then create assignments and recurring patterns for them."
           action={{ label: '+ Add Course', onClick: () => setAddOpen(true) }}

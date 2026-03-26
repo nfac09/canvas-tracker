@@ -30,7 +30,6 @@ export function AllAssignmentsPage() {
     status: '',
     category: '',
   })
-
   const [showDone, setShowDone] = useState(false)
 
   const visible = useMemo(() => {
@@ -65,8 +64,8 @@ export function AllAssignmentsPage() {
       onClick={() => toggleSort(k)}
       className={`text-xs px-2.5 py-1 rounded-lg border transition-colors
         ${sortKey === k
-          ? 'bg-indigo-600 text-white border-indigo-600'
-          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+          ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-transparent'
+          : 'border-slate-200 dark:border-white/[0.1] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-700 dark:hover:text-slate-200'
         }`}
     >
       {label} {sortKey === k ? (sortAsc ? '↑' : '↓') : ''}
@@ -74,9 +73,11 @@ export function AllAssignmentsPage() {
   )
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">All Assignments</h1>
+    <div className="px-8 py-8 max-w-3xl mx-auto">
+      <div className="flex items-start justify-between mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          All Assignments
+        </h1>
         <Button variant="primary" onClick={() => setAddOpen(true)}>
           + Add Assignment
         </Button>
@@ -85,12 +86,12 @@ export function AllAssignmentsPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <AssignmentFilters filters={filters} onChange={setFilters} showCategory />
-        <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+        <label className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 cursor-pointer">
           <input
             type="checkbox"
             checked={showDone}
             onChange={(e) => setShowDone(e.target.checked)}
-            className="rounded border-gray-300 text-indigo-600"
+            className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500/50"
           />
           Show completed
         </label>
@@ -98,7 +99,7 @@ export function AllAssignmentsPage() {
 
       {/* Sort controls */}
       <div className="flex items-center gap-1.5 mb-5">
-        <span className="text-xs text-gray-400 mr-1">Sort:</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">Sort:</span>
         <SortBtn k="dueDate" label="Due Date" />
         <SortBtn k="priority" label="Priority" />
         <SortBtn k="course" label="Course" />
@@ -106,11 +107,13 @@ export function AllAssignmentsPage() {
       </div>
 
       {/* Count */}
-      <p className="text-xs text-gray-400 mb-3">{visible.length} assignment{visible.length !== 1 ? 's' : ''}</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+        {visible.length} assignment{visible.length !== 1 ? 's' : ''}
+      </p>
 
       {visible.length === 0 ? (
         <EmptyState
-          icon="📋"
+          icon="○"
           title="No assignments found"
           description="Try adjusting your filters or add a new assignment."
           action={{ label: '+ Add Assignment', onClick: () => setAddOpen(true) }}

@@ -30,7 +30,8 @@ const categories: { value: AssignmentCategory | ''; label: string }[] = [
   { value: 'other', label: 'Other' },
 ]
 
-const selectCls = 'text-sm rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 py-1.5 focus:ring-indigo-500 focus:border-indigo-500'
+const selectCls =
+  'text-sm rounded-lg border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 py-1.5 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors'
 
 export function AssignmentFilters({ filters, onChange, showCategory = false }: AssignmentFiltersProps) {
   const courses = useStore((s) => s.courses)
@@ -74,7 +75,7 @@ export function AssignmentFilters({ filters, onChange, showCategory = false }: A
       {active && (
         <button
           onClick={() => onChange({ courseId: '', status: '', category: '' })}
-          className="text-xs font-medium text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          className="text-xs font-medium text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
           Clear
         </button>

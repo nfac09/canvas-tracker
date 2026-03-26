@@ -5,11 +5,11 @@ import { CanvasImportModal } from '../canvas/CanvasImportModal'
 import { ThemeToggle } from '../ui/ThemeToggle'
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: '▦', end: true },
-  { to: '/assignments', label: 'Assignments', icon: '☑', end: false },
-  { to: '/grades', label: 'Grades', icon: '◎', end: false },
-  { to: '/courses', label: 'Courses', icon: '◫', end: false },
-  { to: '/patterns', label: 'Recurring', icon: '↺', end: false },
+  { to: '/', label: 'Dashboard', end: true },
+  { to: '/assignments', label: 'Assignments', end: false },
+  { to: '/grades', label: 'Grades', end: false },
+  { to: '/courses', label: 'Courses', end: false },
+  { to: '/patterns', label: 'Recurring', end: false },
 ]
 
 export function Sidebar() {
@@ -18,59 +18,61 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="w-60 shrink-0 bg-slate-900 flex flex-col h-screen sticky top-0 border-r border-slate-800">
-        {/* Traffic light spacer — gives room for macOS window controls.
-            The [app-region:drag] class makes this area draggable as a title bar. */}
+      <aside className="w-56 shrink-0 bg-white dark:bg-[#0d0d13] flex flex-col h-screen sticky top-0 border-r border-slate-200 dark:border-white/[0.06]">
+        {/* macOS traffic light spacer — draggable title bar */}
         <div
-          className="h-11 shrink-0 px-5 flex items-end pb-1"
+          className="h-11 shrink-0"
           style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
         />
 
         {/* Logo */}
-        <div className="px-5 pb-4">
-          <div className="flex items-center gap-2.5 mb-0.5">
-            <div className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">CT</span>
+        <div className="px-4 pb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 bg-indigo-500 rounded-[5px] flex items-center justify-center shrink-0">
+              <span className="text-white text-[10px] font-bold tracking-tight">CT</span>
             </div>
-            <span className="text-white font-semibold text-sm tracking-tight">Canvas Tracker</span>
+            <span className="text-slate-900 dark:text-white/90 font-semibold text-[13px] tracking-tight">
+              Canvas Tracker
+            </span>
           </div>
-          <p className="text-slate-500 text-xs ml-9">Weekly planner</p>
+          <p className="text-slate-400 dark:text-[#3a3a58] text-[11px] mt-0.5 ml-[34px]">
+            Weekly planner
+          </p>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 space-y-px">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                `flex items-center px-3 py-[7px] rounded-lg text-[13px] transition-colors
                 ${isActive
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                  ? 'bg-indigo-50 dark:bg-white/[0.08] text-indigo-700 dark:text-white font-medium'
+                  : 'text-slate-500 dark:text-[#8888a8] hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-800 dark:hover:text-white/80'
                 }`
               }
             >
-              <span className="w-4 text-center opacity-80">{item.icon}</span>
               {item.label}
             </NavLink>
           ))}
 
           {/* Courses section */}
           {courses.length > 0 && (
-            <div className="pt-4">
-              <p className="px-3 mb-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+            <div className="pt-5">
+              <p className="px-3 mb-1.5 text-[10px] font-semibold text-slate-400 dark:text-[#3a3a55] uppercase tracking-widest">
                 Courses
               </p>
               {courses.map((course) => (
                 <NavLink
                   key={course.id}
                   to={`/assignments?course=${course.id}`}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+                  className="flex items-center gap-2 px-3 py-[7px] rounded-lg text-[13px] text-slate-500 dark:text-[#8888a8] hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-800 dark:hover:text-white/80 transition-colors"
                 >
                   <span
-                    className="w-2 h-2 rounded-full shrink-0"
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: course.color }}
                   />
                   <span className="truncate">{course.name}</span>
@@ -81,12 +83,12 @@ export function Sidebar() {
         </nav>
 
         {/* Bottom actions */}
-        <div className="px-2 pb-4 space-y-0.5 border-t border-slate-800 pt-3">
+        <div className="px-2 pb-4 pt-2.5 border-t border-slate-200 dark:border-white/[0.06] space-y-px">
           <button
             onClick={() => setImportOpen(true)}
-            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-[7px] rounded-lg text-[13px] text-slate-500 dark:text-[#8888a8] hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-800 dark:hover:text-white/80 transition-colors"
           >
-            <span className="w-4 text-center">⬆</span>
+            <span className="text-[11px] opacity-70">↑</span>
             Import from Canvas
           </button>
           <ThemeToggle />
