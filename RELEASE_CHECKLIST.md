@@ -92,6 +92,40 @@ npm run electron:build:win   # Windows .exe → release/  (run on Windows)
 
 ---
 
+## Release notes template
+
+When GitHub creates the draft release, add release notes before publishing. Copy and edit this template in the GitHub release body:
+
+```
+## What's new
+
+- [Describe the main change]
+- [Another change]
+
+---
+
+## Download
+
+| Platform | File |
+|---|---|
+| Mac — Apple Silicon (M1/M2/M3/M4) | `Canvas Tracker-X.Y.Z-arm64.dmg` |
+| Mac — Intel | `Canvas Tracker-X.Y.Z.dmg` |
+| Windows 10 / 11 | `Canvas Tracker Setup X.Y.Z.exe` |
+
+**Not sure which Mac you have?**  Apple menu → About This Mac → look for "Apple M" (Silicon) or "Intel" under Chip/Processor.
+
+### macOS install note
+macOS may show "Apple cannot verify this app" on first launch.
+Go to **System Settings → Privacy & Security → Open Anyway**, or right-click the app → Open.
+
+### Windows install note
+Windows may show "Windows protected your PC." Click **More info → Run anyway**.
+```
+
+Replace `X.Y.Z` with the actual version number in the download table.
+
+---
+
 ## Auto-update behavior
 
 Existing installs check for updates automatically on launch. When a new release is published:

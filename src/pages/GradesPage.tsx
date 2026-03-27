@@ -357,7 +357,7 @@ export function GradesPage() {
           <EmptyState
             icon="○"
             title="No grades yet"
-            description="Mark assignments as done and record grades from the card or Assignments page."
+            description="Grades appear here once you mark assignments as done and record a score. Start on the Assignments page."
           />
         </div>
       ) : (

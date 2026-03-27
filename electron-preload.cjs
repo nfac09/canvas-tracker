@@ -22,4 +22,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openExternal:   (url)   => ipcRenderer.invoke('open-external', url),
   // Returns the app version from package.json
   getVersion:     ()      => ipcRenderer.invoke('get-version'),
+  // Fetch a Canvas iCal feed URL via the main process (no CORS, no proxy)
+  fetchIcalUrl:   (url)   => ipcRenderer.invoke('fetch-ical-url', url),
 })

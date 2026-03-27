@@ -73,6 +73,61 @@ function setupAutoUpdater() {
 ipcMain.handle('open-external', (_e, url) => shell.openExternal(url))
 ipcMain.handle('get-version', () => app.getVersion())
 
+/**
+ * Fetch a Canvas iCal feed URL from the main process (Node.js).
+ * No CORS restrictions apply here — the URL is fetched directly and
+ * never routed through a third-party proxy.
+ */
+ipcMain.handle('fetch-ical-url', async (_e, url) => {
+  // Validate URL before making any network call
+  let parsed
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error('Invalid URL — make sure you copied the full calendar feed link.')
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('Only http and https URLs are supported.')
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 20000) // 20s timeout
+
+  try {
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'CanvasTracker/1.0' },
+    })
+    clearTimeout(timeoutId)
+
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error(
+        `Canvas returned HTTP ${resp.status}. The calendar feed URL may have expired — copy it again from Canvas Calendar settings.`
+      )
+    }
+    if (resp.status === 404) {
+      throw new Error('URL not found (HTTP 404). Double-check that you copied the correct calendar feed link.')
+    }
+    if (!resp.ok) {
+      throw new Error(`Canvas returned HTTP ${resp.status}. Try again, or use the file upload method instead.`)
+    }
+
+    const text = await resp.text()
+    if (!text.trimStart().startsWith('BEGIN:VCALENDAR')) {
+      throw new Error(
+        'The URL did not return a valid calendar file. Make sure you copied the "Calendar Feed" link, not a regular Canvas page URL.'
+      )
+    }
+    return text
+  } catch (err) {
+    clearTimeout(timeoutId)
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out after 20 seconds. Check your internet connection and try again.')
+    }
+    throw err
+  }
+})
+
 ipcMain.handle('install-update', () => {
   try {
     autoUpdater.quitAndInstall(false, true)

@@ -35,9 +35,11 @@ declare global {
       onUpdateError:      (callback: (error: UpdateError) => void) => void
 
       // Actions
-      installUpdate:  () => Promise<void>
-      openExternal:   (url: string) => Promise<void>
-      getVersion:     () => Promise<string>
+      installUpdate:   () => Promise<void>
+      openExternal:    (url: string) => Promise<void>
+      getVersion:      () => Promise<string>
+      /** Fetch a Canvas iCal feed URL via the main process — no CORS proxy, no third-party routing */
+      fetchIcalUrl:    (url: string) => Promise<string>
     }
   }
 }

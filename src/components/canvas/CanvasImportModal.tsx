@@ -51,20 +51,17 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
   }
 
   async function handleUrl() {
-    if (!url.trim()) return
+    const trimmed = url.trim()
+    if (!trimmed) return
     setLoading(true)
     setError('')
     setResult(null)
     try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url.trim())}`
-      const resp = await fetch(proxyUrl)
-      if (!resp.ok) throw new Error('Network error fetching calendar.')
-      const data = (await resp.json()) as { contents?: string }
-      if (!data.contents) throw new Error('Empty response from calendar URL.')
-      const session = importFromIcal(data.contents, 'ical_url')
+      const text = await window.electronAPI!.fetchIcalUrl(trimmed)
+      const session = importFromIcal(text, 'ical_url')
       setResult(session)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch calendar.')
+      setError(err instanceof Error ? err.message : 'Failed to fetch calendar. Try the file upload method instead.')
     } finally {
       setLoading(false)
     }
@@ -73,31 +70,35 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
   return (
     <Modal open={open} onClose={handleClose} title="Import from Canvas">
       <div className="space-y-4">
-        {/* Info banner */}
-        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-          <strong>How to get your Canvas calendar:</strong>{' '}
-          Calendar → gear icon → "Calendar Feed" to copy the URL, or "Export" to download a .ics file.
-        </div>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-slate-100 dark:bg-white/[0.05] p-1 rounded-xl">
           {(['file', 'url'] as Tab[]).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => { setTab(t); setError('') }}
               className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors
                 ${tab === t
                   ? 'bg-white dark:bg-white/[0.1] text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
             >
-              {t === 'file' ? 'Upload .ics file' : 'Paste URL'}
+              {t === 'file' ? 'Upload .ics file' : 'Paste feed URL'}
             </button>
           ))}
         </div>
 
         {tab === 'file' && (
-          <div>
+          <div className="space-y-3">
+            <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
+              <p className="font-medium text-slate-800 dark:text-slate-200">How to export your Canvas calendar:</p>
+              <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
+                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → click <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
+                <li>Click the <strong className="text-slate-700 dark:text-slate-300">gear icon</strong> (top right of calendar)</li>
+                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Export</strong> and save the .ics file</li>
+                <li>Upload it below</li>
+              </ol>
+            </div>
             <input
               ref={fileRef}
               type="file"
@@ -116,13 +117,23 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
         )}
 
         {tab === 'url' && (
-          <div className="space-y-2">
-            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
-              Uses a CORS proxy to fetch the URL. Do not paste sensitive links.
-            </p>
+          <div className="space-y-3">
+            <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
+              <p className="font-medium text-slate-800 dark:text-slate-200">How to get your Canvas feed URL:</p>
+              <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
+                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → click <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
+                <li>Click the <strong className="text-slate-700 dark:text-slate-300">gear icon</strong> (top right of calendar)</li>
+                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the link</li>
+                <li>Paste it below</li>
+              </ol>
+              <p className="text-slate-400 dark:text-slate-600 pt-1">
+                Your URL is fetched directly — it never leaves your device.
+              </p>
+            </div>
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleUrl() }}
               className="w-full rounded-lg border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.06] dark:text-slate-100 text-sm focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
               placeholder="https://canvas.instructure.com/feeds/calendars/…"
             />
