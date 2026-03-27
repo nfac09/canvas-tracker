@@ -6,6 +6,8 @@ import { createAssignmentSlice } from './assignmentSlice'
 import { createRecurringPatternSlice } from './recurringPatternSlice'
 import { createImportSlice } from './importSlice'
 import { createSettingsSlice } from './settingsSlice'
+import { createSuggestionSlice } from './suggestionSlice'
+import { createResetSlice } from './resetSlice'
 import { getSeedData } from '../utils/seedData'
 import type { RootSlice } from './types'
 
@@ -18,11 +20,15 @@ export const useStore = create<RootSlice>()(
       ...createRecurringPatternSlice(...args),
       ...createImportSlice(...args),
       ...createSettingsSlice(...args),
+      ...createSuggestionSlice(...args),
+      ...createResetSlice(...args),
     })),
     {
       name: 'canvas-tracker-v1',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
+        // Skip seeding if the user has intentionally reset data
+        if (state?.dataResetAt) return
         if (state && state.courses.length === 0 && state.assignments.length === 0) {
           const seed = getSeedData()
           state.courses = seed.courses

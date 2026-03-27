@@ -1,12 +1,17 @@
 # Canvas Tracker — Automated release workflow
 #
 # Triggers when a version tag (v*) is pushed to GitHub.
-# Builds the macOS app and publishes it as a GitHub Release.
+# Builds macOS and Windows installers in parallel, then publishes the release.
 #
-# Normal usage (from your terminal in the project):
+# Normal usage (from your terminal in the project root):
 #   npm run release          # patch: 1.0.0 → 1.0.1
 #   npm run release:minor    # minor: 1.0.0 → 1.1.0
 #   npm run release:major    # major: 1.0.0 → 2.0.0
+#
+# Output artifacts uploaded to the GitHub Release:
+#   macOS (Apple Silicon) : Canvas Tracker-X.Y.Z-arm64.dmg
+#   macOS (Intel)         : Canvas Tracker-X.Y.Z.dmg
+#   Windows               : Canvas Tracker Setup X.Y.Z.exe  (x64)
 
 name: Release
 
@@ -20,8 +25,9 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build & publish macOS release
+  # ── macOS build (.dmg) ──────────────────────────────────────────────────────
+  build-mac:
+    name: Build macOS (.dmg)
     runs-on: macos-latest
     timeout-minutes: 30
 
@@ -38,17 +44,47 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish
+      - name: Build and publish macOS artifacts
         env:
-          # GITHUB_TOKEN is automatically provided by Actions with contents:write
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run electron:build:ci
+        run: npx tsc -b && npx vite build && npx electron-builder --mac --publish always
 
-      # Optional: upload build artifacts for debugging if the build fails
-      - name: Upload artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
+  # ── Windows build (.exe) ────────────────────────────────────────────────────
+  build-win:
+    name: Build Windows (.exe)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: release-artifacts
-          path: release/
-          if-no-files-found: ignore
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish Windows artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: npx tsc -b && npx vite build && npx electron-builder --win --publish always
+
+  # ── Finalize release ────────────────────────────────────────────────────────
+  # Waits for both builds to succeed, then converts the draft release to
+  # published so users see a complete release with all platform artifacts.
+  finalize-release:
+    name: Publish release
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Promote draft to published release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ github.ref_name }}" --draft=false --repo "${{ github.repository }}"

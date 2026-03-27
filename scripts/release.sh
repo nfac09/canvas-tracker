@@ -53,6 +53,6 @@ git push --tags
 
 echo ""
 echo "✓ Release v$NEW_VERSION triggered."
-echo "  GitHub Actions is now building the macOS app."
+echo "  GitHub Actions is building macOS (.dmg) and Windows (.exe) in parallel."
 echo "  Track progress: https://github.com/nfac09/canvas-tracker/actions"
 echo "  Release page:   https://github.com/nfac09/canvas-tracker/releases"

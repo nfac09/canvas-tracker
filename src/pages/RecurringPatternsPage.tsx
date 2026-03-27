@@ -5,6 +5,8 @@ import { PatternForm } from '../components/patterns/PatternForm'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 import { getCourseById } from '../store/selectors'
+import { RecurrenceSuggestionsPanel } from '../components/patterns/RecurrenceSuggestionsPanel'
+import { RecurrenceAuditPanel } from '../components/patterns/RecurrenceAuditPanel'
 
 export function RecurringPatternsPage() {
   const patterns = useStore((s) => s.recurringPatterns)
@@ -55,6 +57,9 @@ export function RecurringPatternsPage() {
           </select>
         </div>
       )}
+
+      {import.meta.env.DEV && <RecurrenceAuditPanel />}
+      <RecurrenceSuggestionsPanel />
 
       {patterns.length === 0 ? (
         <EmptyState

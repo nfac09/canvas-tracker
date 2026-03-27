@@ -9,7 +9,7 @@ export interface SettingsSlice {
 
 export const createSettingsSlice: StateCreator<RootSlice, [['zustand/immer', never]], [], SettingsSlice> = (set) => ({
   settings: {
-    weekStartsOn: 0,
+    weekStartsOn: 1,
     recurringGenerationWeeksAhead: 8,
     theme: 'light',
   },

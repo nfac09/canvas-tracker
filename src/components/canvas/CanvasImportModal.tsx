@@ -148,7 +148,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-3">
               Import complete
             </p>
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-3 gap-2 text-center mb-2">
               {[
                 { label: 'Created', value: result.itemsCreated, color: 'text-emerald-700 dark:text-emerald-400' },
                 { label: 'Updated', value: result.itemsUpdated, color: 'text-blue-700 dark:text-blue-400' },
@@ -160,7 +160,12 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500 text-center mt-2">
+            {!!result.coursesCreated && (
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 text-center font-medium mb-1">
+                {result.coursesCreated} new course{result.coursesCreated !== 1 ? 's' : ''} created automatically
+              </p>
+            )}
+            <p className="text-xs text-emerald-600 dark:text-emerald-500 text-center">
               Safe to re-import — duplicates are automatically skipped.
             </p>
           </div>

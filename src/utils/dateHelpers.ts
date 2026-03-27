@@ -39,16 +39,16 @@ export function isDueToday(dueDate: string): boolean {
 export function isDueThisWeek(dueDate: string): boolean {
   const d = parseISO(dueDate)
   const now = new Date()
-  const weekStart = startOfWeek(now, { weekStartsOn: 0 })
-  const weekEnd = endOfWeek(now, { weekStartsOn: 0 })
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 })
   return isWithinInterval(d, { start: weekStart, end: weekEnd })
 }
 
 export function isDueNextTwoWeeks(dueDate: string): boolean {
   const d = parseISO(dueDate)
   const now = new Date()
-  const nextWeekStart = addWeeks(startOfWeek(now, { weekStartsOn: 0 }), 1)
-  const twoWeeksEnd = endOfWeek(addWeeks(now, 2), { weekStartsOn: 0 })
+  const nextWeekStart = addWeeks(startOfWeek(now, { weekStartsOn: 1 }), 1)
+  const twoWeeksEnd = endOfWeek(addWeeks(now, 2), { weekStartsOn: 1 })
   return isWithinInterval(d, { start: nextWeekStart, end: twoWeeksEnd })
 }
 
