@@ -2,7 +2,7 @@
   "name": "canvas-tracker",
   "productName": "Canvas Tracker",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "main": "electron-main.cjs",
   "scripts": {
