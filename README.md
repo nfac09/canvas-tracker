@@ -41,15 +41,17 @@ Canvas Tracker imports your Canvas calendar and organizes everything you have du
 2. Drag **Canvas Tracker** to your Applications folder
 3. Launch the app from Applications
 
-**"Apple cannot verify this app" warning**
+**macOS security warning on first launch**
 
-Because Canvas Tracker is not notarized with an Apple Developer certificate, macOS may block it on first launch. To open it:
+Because Canvas Tracker is not signed with an Apple Developer certificate, macOS will block it on first launch. The exact message depends on your macOS version:
 
-1. Go to **System Settings → Privacy & Security**
-2. Scroll down — you should see a message about Canvas Tracker being blocked
-3. Click **Open Anyway**, then **Open** in the confirmation dialog
+- **"Apple cannot verify…" / "unidentified developer"** — Go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**. Or right-click the app → **Open** → **Open**.
 
-Alternatively: right-click (or Control-click) the app in Applications, choose **Open**, then click **Open** in the dialog. You only need to do this once.
+- **"damaged and can't be opened"** (macOS Sequoia and later) — The UI bypass is disabled for unsigned apps. Open **Terminal** and run:
+  ```
+  xattr -cr "/Applications/Canvas Tracker.app"
+  ```
+  Then launch the app normally. You only need to do this once.
 
 ---
 

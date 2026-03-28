@@ -115,8 +115,14 @@ When GitHub creates the draft release, add release notes before publishing. Copy
 **Not sure which Mac you have?**  Apple menu → About This Mac → look for "Apple M" (Silicon) or "Intel" under Chip/Processor.
 
 ### macOS install note
-macOS may show "Apple cannot verify this app" on first launch.
-Go to **System Settings → Privacy & Security → Open Anyway**, or right-click the app → Open. You only need to do this once.
+macOS will block the app on first launch because it is not signed with an Apple Developer certificate.
+
+- **macOS Ventura / Sonoma:** Go to **System Settings → Privacy & Security → Open Anyway**, or right-click the app → Open.
+- **macOS Sequoia and later:** macOS shows "damaged and can't be opened" with no UI bypass. Open Terminal and run:
+  ```
+  xattr -cr "/Applications/Canvas Tracker.app"
+  ```
+  Then launch normally. You only need to do this once.
 
 **Updating on macOS:** Canvas Tracker detects updates automatically, but macOS requires a manual install. When the app notifies you of a new version, click the download link, open the `.dmg`, and drag the app to Applications.
 
