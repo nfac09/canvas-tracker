@@ -44,9 +44,55 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # package.json has identity:null / hardenedRuntime:false / notarize:false to
+      # prevent codesign from running on developer machines (com.apple.provenance
+      # on APFS makes any codesign call fail on macOS Sequoia+).
+      #
+      # On CI those suppressions are removed and replaced with the real values:
+      #   - identity removed  → electron-builder uses CSC_LINK cert if present,
+      #                         otherwise falls back to ad-hoc (–sign -)
+      #   - hardenedRuntime:true  → required for notarization
+      #   - notarize:{teamId}     → enabled only when APPLE_TEAM_ID secret exists
+      #
+      # Secrets needed for full signed + notarized release quality:
+      #   CSC_LINK                 base64-encoded Developer ID Application .p12
+      #   CSC_KEY_PASSWORD         password for the .p12
+      #   APPLE_ID                 your Apple ID email (for notarization)
+      #   APPLE_APP_SPECIFIC_PASSWORD  app-specific password from appleid.apple.com
+      #   APPLE_TEAM_ID            10-char Team ID from developer.apple.com
+      #
+      # Without CSC_LINK/CSC_KEY_PASSWORD: ad-hoc signing only (not distributable).
+      # With signing but without Apple creds: signed but not notarized (Gatekeeper
+      #   warns on first launch; auto-update works).
+      # With all five secrets: fully signed + notarized (no warnings, auto-update
+      #   works reliably on all macOS versions).
+      - name: Configure signing and notarization for CI
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            delete pkg.build.mac.identity;
+            pkg.build.mac.hardenedRuntime = true;
+            pkg.build.mac.notarize = process.env.APPLE_TEAM_ID
+              ? { teamId: process.env.APPLE_TEAM_ID }
+              : false;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      # Safety: strip com.apple.provenance if it appears on this runner.
+      - name: Strip extended attributes from Electron binaries
+        run: find node_modules/electron/dist -type f -exec xattr -d com.apple.provenance "{}" \; 2>/dev/null || true
+
       - name: Build and publish macOS artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npx tsc -b && npx vite build && npx electron-builder --mac --publish always
 
   # ── Windows build (.exe) ────────────────────────────────────────────────────

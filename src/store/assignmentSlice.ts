@@ -12,6 +12,8 @@ export interface AssignmentSlice {
   setStatus: (id: string, status: AssignmentStatus) => void
   skipOccurrence: (id: string) => void
   upsertAssignments: (items: Assignment[]) => void
+  bulkSetStatus: (ids: string[], status: AssignmentStatus) => void
+  bulkDelete: (ids: string[]) => void
 }
 
 export const createAssignmentSlice: StateCreator<RootSlice, [['zustand/immer', never]], [], AssignmentSlice> = (set) => ({
@@ -65,5 +67,23 @@ export const createAssignmentSlice: StateCreator<RootSlice, [['zustand/immer', n
         byId.set(item.id, item)
       }
       state.assignments = Array.from(byId.values())
+    }),
+
+  bulkSetStatus: (ids, status) =>
+    set((state) => {
+      const idSet = new Set(ids)
+      const now = nowISO()
+      for (const a of state.assignments) {
+        if (idSet.has(a.id)) {
+          a.status = status
+          a.updatedAt = now
+        }
+      }
+    }),
+
+  bulkDelete: (ids) =>
+    set((state) => {
+      const idSet = new Set(ids)
+      state.assignments = state.assignments.filter((a) => !idSet.has(a.id))
     }),
 })

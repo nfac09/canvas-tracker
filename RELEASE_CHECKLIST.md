@@ -116,10 +116,13 @@ When GitHub creates the draft release, add release notes before publishing. Copy
 
 ### macOS install note
 macOS may show "Apple cannot verify this app" on first launch.
-Go to **System Settings → Privacy & Security → Open Anyway**, or right-click the app → Open.
+Go to **System Settings → Privacy & Security → Open Anyway**, or right-click the app → Open. You only need to do this once.
+
+**Updating on macOS:** Canvas Tracker detects updates automatically, but macOS requires a manual install. When the app notifies you of a new version, click the download link, open the `.dmg`, and drag the app to Applications.
 
 ### Windows install note
 Windows may show "Windows protected your PC." Click **More info → Run anyway**.
+Windows updates install automatically in the background — no manual steps needed for future updates.
 ```
 
 Replace `X.Y.Z` with the actual version number in the download table.
@@ -129,6 +132,9 @@ Replace `X.Y.Z` with the actual version number in the download table.
 ## Auto-update behavior
 
 Existing installs check for updates automatically on launch. When a new release is published:
-- macOS users are notified and the update downloads in the background
-- The update installs when the user quits the app
-- No action needed from you beyond publishing the release
+
+**Windows** — the update downloads in the background and installs automatically. No action needed from users beyond restarting the app when prompted.
+
+**macOS** — the update is detected and downloaded automatically, but macOS blocks auto-install for unsigned apps. The app shows a "Download latest .dmg ↗" button instead of "Restart & Install". Users need to download the new `.dmg` and drag it to Applications manually. This is expected behavior — it is not a bug.
+
+No action needed from you beyond publishing the release. The app handles messaging on both platforms.

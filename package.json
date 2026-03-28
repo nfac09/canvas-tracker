@@ -43,6 +43,11 @@
     "mac": {
       "icon": "build-resources/icon.icns",
       "category": "public.app-category.education",
+      "hardenedRuntime": false,
+      "identity": null,
+      "notarize": false,
+      "entitlements": "build-resources/entitlements.mac.plist",
+      "entitlementsInherit": "build-resources/entitlements.mac.plist",
       "target": [
         {
           "target": "dmg",

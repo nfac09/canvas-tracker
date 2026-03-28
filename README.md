@@ -93,9 +93,11 @@ If you prefer not to import, go to **Courses** and add them by hand. Then add as
 
 ## Updates
 
-Canvas Tracker checks for updates automatically when you launch the app. When a new version is available, you will see a notification. The update downloads in the background and installs the next time you quit and reopen the app.
+Canvas Tracker checks for updates automatically when you launch the app. When a new version is available, you will see a notification.
 
-On macOS, if automatic install does not work, the app will open the releases page so you can download the new `.dmg` manually.
+**Windows** — updates download and install automatically in the background. No action needed.
+
+**macOS** — updates are detected and downloaded automatically, but macOS requires a manual install for apps without an Apple code-signing certificate. When a new version is ready, the app shows a button to open the releases page. Download the new `.dmg`, open it, and drag Canvas Tracker to your Applications folder to update. You only need to do the Gatekeeper workaround (right-click → Open) on the very first install — updates after that open without a warning.
 
 ---
 

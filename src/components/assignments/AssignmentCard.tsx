@@ -10,9 +10,12 @@ import { ConfirmDialog } from '../ui/ConfirmDialog'
 
 interface AssignmentCardProps {
   assignment: Assignment
+  selectable?: boolean
+  selected?: boolean
+  onToggleSelect?: (e: React.MouseEvent) => void
 }
 
-export function AssignmentCard({ assignment }: AssignmentCardProps) {
+export function AssignmentCard({ assignment, selectable = false, selected = false, onToggleSelect }: AssignmentCardProps) {
   const courses = useStore((s) => s.courses)
   const setStatus = useStore((s) => s.setStatus)
   const deleteAssignment = useStore((s) => s.deleteAssignment)
@@ -35,8 +38,10 @@ export function AssignmentCard({ assignment }: AssignmentCardProps) {
         className={`
           group relative flex items-stretch rounded-lg border
           transition-all duration-150 ease-out
-          hover:-translate-y-px
-          ${done
+          ${!selectable ? 'hover:-translate-y-px' : ''}
+          ${selected
+            ? 'border-indigo-400/70 dark:border-indigo-500/40 bg-indigo-50/50 dark:bg-indigo-500/[0.08] shadow-none'
+            : done
             ? 'opacity-40 border-slate-100 dark:border-white/[0.04] bg-transparent shadow-none'
             : overdue
             ? `border-red-200/60 dark:border-red-500/20
@@ -62,36 +67,52 @@ export function AssignmentCard({ assignment }: AssignmentCardProps) {
           />
         )}
 
-        {/* ── Zone 1: Status toggle ──────────────────────────── */}
+        {/* ── Zone 1: Selection checkbox or status toggle ──── */}
         <div className="w-9 flex items-center justify-center shrink-0">
-          <button
-            onClick={() => setStatus(assignment.id, done ? 'not_started' : 'done')}
-            className={`
-              w-[15px] h-[15px] rounded-full border-[1.5px] flex items-center justify-center shrink-0
-              transition-all duration-100 ease-out
-              active:scale-75
-              ${done
-                ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/30'
-                : overdue
-                ? 'border-red-400/70 dark:border-red-600/60 hover:border-red-500 dark:hover:border-red-500/80 hover:bg-red-50 dark:hover:bg-red-500/10'
-                : inProgress
-                ? 'border-indigo-400 dark:border-indigo-500/80 bg-indigo-50 dark:bg-indigo-500/10 hover:border-indigo-500'
-                : 'border-slate-300 dark:border-white/[0.2] hover:border-indigo-400 dark:hover:border-indigo-500/70 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/[0.07]'
-              }
-            `}
-            aria-label={done ? 'Mark as not done' : 'Mark as done'}
-          >
-            {done && (
-              <span className="text-[7px] leading-none font-bold">✓</span>
-            )}
-            {inProgress && !done && (
-              <span className="w-[5px] h-[5px] rounded-full bg-indigo-400" />
-            )}
-          </button>
+          {selectable ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleSelect?.(e) }}
+              className={`
+                w-[15px] h-[15px] rounded-[3px] border-[1.5px] flex items-center justify-center shrink-0
+                transition-all duration-100 ease-out active:scale-75
+                ${selected
+                  ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm shadow-indigo-500/30'
+                  : 'border-slate-300 dark:border-white/[0.2] hover:border-indigo-400 dark:hover:border-indigo-500/70 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/[0.07]'
+                }
+              `}
+              aria-label={selected ? 'Deselect' : 'Select'}
+            >
+              {selected && <span className="text-[7px] leading-none font-bold">✓</span>}
+            </button>
+          ) : (
+            <button
+              onClick={() => setStatus(assignment.id, done ? 'not_started' : 'done')}
+              className={`
+                w-[15px] h-[15px] rounded-full border-[1.5px] flex items-center justify-center shrink-0
+                transition-all duration-100 ease-out
+                active:scale-75
+                ${done
+                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/30'
+                  : overdue
+                  ? 'border-red-400/70 dark:border-red-600/60 hover:border-red-500 dark:hover:border-red-500/80 hover:bg-red-50 dark:hover:bg-red-500/10'
+                  : inProgress
+                  ? 'border-indigo-400 dark:border-indigo-500/80 bg-indigo-50 dark:bg-indigo-500/10 hover:border-indigo-500'
+                  : 'border-slate-300 dark:border-white/[0.2] hover:border-indigo-400 dark:hover:border-indigo-500/70 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/[0.07]'
+                }
+              `}
+              aria-label={done ? 'Mark as not done' : 'Mark as done'}
+            >
+              {done && <span className="text-[7px] leading-none font-bold">✓</span>}
+              {inProgress && !done && <span className="w-[5px] h-[5px] rounded-full bg-indigo-400" />}
+            </button>
+          )}
         </div>
 
         {/* ── Zone 2: Content ─────────────────────────────────── */}
-        <div className="flex-1 min-w-0 py-[9px] pr-3">
+        <div
+          className={`flex-1 min-w-0 py-[9px] pr-3 ${selectable ? 'cursor-pointer' : ''}`}
+          onClick={selectable ? (e) => onToggleSelect?.(e) : undefined}
+        >
           {/* Row 1: Title */}
           <div className="flex items-center gap-1.5 mb-[3px]">
             <PriorityDot priority={assignment.priority} />
@@ -187,8 +208,8 @@ export function AssignmentCard({ assignment }: AssignmentCardProps) {
             {formatDisplayDate(assignment.dueDate, assignment.dueTime)}
           </span>
 
-          {/* Action buttons — slide in from right on hover */}
-          <div className="opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 flex items-center gap-0.5 transition-[opacity,transform] duration-150 ease-out shrink-0">
+          {/* Action buttons — hidden in selection mode, slide in on hover otherwise */}
+          <div className={`flex items-center gap-0.5 transition-[opacity,transform] duration-150 ease-out shrink-0 ${selectable ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0'}`}>
             {done && (
               <button
                 onClick={() => setGradeOpen(true)}

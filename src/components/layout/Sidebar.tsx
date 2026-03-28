@@ -8,6 +8,7 @@ import { ResetDataModal } from '../ui/ResetDataModal'
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/assignments', label: 'Assignments', end: false },
+  { to: '/calendar', label: 'Calendar', end: false },
   { to: '/grades', label: 'Grades', end: false },
   { to: '/courses', label: 'Courses', end: false },
   { to: '/patterns', label: 'Recurring', end: false },

@@ -8,6 +8,7 @@ import { AllAssignmentsPage } from './pages/AllAssignmentsPage'
 import { CoursesPage } from './pages/CoursesPage'
 import { RecurringPatternsPage } from './pages/RecurringPatternsPage'
 import { GradesPage } from './pages/GradesPage'
+import { CalendarPage } from './pages/CalendarPage'
 
 export default function App() {
   const generateFromPatterns = useStore((s) => s.generateFromPatterns)
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="courses" element={<CoursesPage />} />
         <Route path="patterns" element={<RecurringPatternsPage />} />
         <Route path="grades" element={<GradesPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
       </Route>
     </Routes>
   )

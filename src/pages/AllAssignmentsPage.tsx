@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { selectAllVisible } from '../store/selectors'
@@ -8,6 +8,7 @@ import {
   type FilterState,
 } from '../components/assignments/AssignmentFilters'
 import { AssignmentForm } from '../components/assignments/AssignmentForm'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 
@@ -19,6 +20,8 @@ const STATUS_ORDER = { not_started: 0, in_progress: 1, done: 2 }
 export function AllAssignmentsPage() {
   const assignments = useStore((s) => s.assignments)
   const courses = useStore((s) => s.courses)
+  const bulkSetStatus = useStore((s) => s.bulkSetStatus)
+  const bulkDelete = useStore((s) => s.bulkDelete)
   const [searchParams, setSearchParams] = useSearchParams()
   const courseParam = searchParams.get('course') ?? ''
 
@@ -32,6 +35,28 @@ export function AllAssignmentsPage() {
     gradeState: '',
   })
   const [showDone, setShowDone] = useState(false)
+
+  // ── Selection state ──────────────────────────────────────────────────────
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null)
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false)
+    setSelectedIds(new Set())
+    setLastSelectedIndex(null)
+  }, [])
+
+  // Escape key clears selection
+  useEffect(() => {
+    if (!selectionMode) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') exitSelectionMode()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [selectionMode, exitSelectionMode])
 
   // courseId is always driven by the URL — no effect needed
   // Overriding filters.courseId with courseParam ensures sidebar clicks always take effect immediately
@@ -48,6 +73,29 @@ export function AllAssignmentsPage() {
       setSearchParams(next)
     }
     setFilters(f)
+    setSelectedIds(new Set())
+    setLastSelectedIndex(null)
+  }
+
+  function handleToggleSelect(id: string, index: number, e: React.MouseEvent) {
+    if (e.shiftKey && lastSelectedIndex !== null) {
+      const lo = Math.min(lastSelectedIndex, index)
+      const hi = Math.max(lastSelectedIndex, index)
+      const rangeIds = visible.slice(lo, hi + 1).map((a) => a.id)
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        rangeIds.forEach((rid) => next.add(rid))
+        return next
+      })
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+      setLastSelectedIndex(index)
+    }
   }
 
   // When gradeState filter is active, we need to see done assignments
@@ -86,6 +134,18 @@ export function AllAssignmentsPage() {
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortAsc((v) => !v)
     else { setSortKey(key); setSortAsc(true) }
+    setSelectedIds(new Set())
+    setLastSelectedIndex(null)
+  }
+
+  const allVisibleSelected = visible.length > 0 && visible.every((a) => selectedIds.has(a.id))
+
+  function handleSelectAll() {
+    if (allVisibleSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(visible.map((a) => a.id)))
+    }
   }
 
   const SortBtn = ({ k, label }: { k: SortKey; label: string }) => (
@@ -159,11 +219,26 @@ export function AllAssignmentsPage() {
             <SortBtn k="course" label="Course" />
             <SortBtn k="status" label="Status" />
           </div>
+
+          {/* Divider */}
+          <div className="w-px h-4 bg-slate-200 dark:bg-white/[0.08] shrink-0" />
+
+          {/* Select mode toggle */}
+          <button
+            onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
+            className={`text-[11px] font-medium px-2.5 py-[5px] rounded-md transition-all duration-100 ease-out active:scale-[0.93] shrink-0
+              ${selectionMode
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-indigo-900/25'
+                : 'text-slate-500 dark:text-white/35 hover:text-slate-800 dark:hover:text-white/70 hover:bg-slate-100/80 dark:hover:bg-white/[0.07]'
+              }`}
+          >
+            {selectionMode ? 'Cancel' : 'Select'}
+          </button>
         </div>
       </div>
 
       {/* Assignment list */}
-      <div className="px-7 pt-4 pb-10 max-w-3xl">
+      <div className="px-7 pt-4 pb-28 max-w-3xl">
         {visible.length === 0 ? (
           <EmptyState
             icon="○"
@@ -173,12 +248,88 @@ export function AllAssignmentsPage() {
           />
         ) : (
           <div className="space-y-1">
-            {visible.map((a) => <AssignmentCard key={a.id} assignment={a} />)}
+            {visible.map((a, index) => (
+              <AssignmentCard
+                key={a.id}
+                assignment={a}
+                selectable={selectionMode}
+                selected={selectedIds.has(a.id)}
+                onToggleSelect={(e) => handleToggleSelect(a.id, index, e)}
+              />
+            ))}
           </div>
         )}
       </div>
 
       <AssignmentForm open={addOpen} onClose={() => setAddOpen(false)} />
+
+      {/* ── Bulk action bar ─────────────────────────────────────── */}
+      {selectionMode && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 px-2 py-2 rounded-2xl bg-white dark:bg-[#18182e] border border-slate-200 dark:border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.14)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.6)] whitespace-nowrap">
+
+          {/* Count + select-all */}
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-[12px] font-semibold text-slate-700 dark:text-white/70 tabular-nums">
+              {selectedIds.size} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 transition-colors"
+            >
+              {allVisibleSelected ? 'Deselect all' : `Select all (${visible.length})`}
+            </button>
+          </div>
+
+          <div className="w-px h-5 bg-slate-200 dark:bg-white/[0.1] mx-1" />
+
+          {/* Actions */}
+          <button
+            onClick={() => { bulkSetStatus([...selectedIds], 'done'); exitSelectionMode() }}
+            disabled={selectedIds.size === 0}
+            className="flex items-center gap-1.5 px-3 py-[6px] rounded-xl text-[12px] font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 active:bg-emerald-100 dark:active:bg-emerald-500/20 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <span className="text-[10px]">✓</span> Mark done
+          </button>
+          <button
+            onClick={() => { bulkSetStatus([...selectedIds], 'not_started'); exitSelectionMode() }}
+            disabled={selectedIds.size === 0}
+            className="flex items-center gap-1.5 px-3 py-[6px] rounded-xl text-[12px] font-medium text-slate-600 dark:text-white/50 hover:bg-slate-100 dark:hover:bg-white/[0.07] active:bg-slate-200 dark:active:bg-white/[0.12] transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <span className="text-[10px] opacity-60">○</span> Mark not done
+          </button>
+
+          <div className="w-px h-5 bg-slate-200 dark:bg-white/[0.1] mx-1" />
+
+          <button
+            onClick={() => setConfirmBulkDelete(true)}
+            disabled={selectedIds.size === 0}
+            className="flex items-center gap-1.5 px-3 py-[6px] rounded-xl text-[12px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 active:bg-red-100 dark:active:bg-red-500/20 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <span className="text-[10px]">✕</span> Delete
+          </button>
+
+          <div className="w-px h-5 bg-slate-200 dark:bg-white/[0.1] mx-1" />
+
+          {/* Dismiss */}
+          <button
+            onClick={exitSelectionMode}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-[11px] text-slate-400 dark:text-white/25 hover:text-slate-700 dark:hover:text-white/60 hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors"
+            title="Exit selection (Esc)"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmBulkDelete}
+        title={`Delete ${selectedIds.size} assignment${selectedIds.size !== 1 ? 's' : ''}`}
+        description={`This will permanently delete ${selectedIds.size} assignment${selectedIds.size !== 1 ? 's' : ''}. This cannot be undone.`}
+        confirmLabel="Delete"
+        danger
+        onConfirm={() => { bulkDelete([...selectedIds]); exitSelectionMode(); setConfirmBulkDelete(false) }}
+        onCancel={() => setConfirmBulkDelete(false)}
+      />
     </div>
   )
 }

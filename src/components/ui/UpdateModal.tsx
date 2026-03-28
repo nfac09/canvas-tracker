@@ -1,4 +1,12 @@
 import { useEffect, useState } from 'react'
+import {
+  parseStructuredNotes,
+  sectionVariant,
+  VARIANT_DOT,
+  VARIANT_LABEL,
+  type ReleaseSection,
+} from '../../utils/releaseNotes'
+
 // Types come from the global Window augmentation in src/electron.d.ts
 type UpdateState = 'idle' | 'available' | 'downloading' | 'downloaded' | 'error'
 
@@ -20,18 +28,44 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function parseNotes(raw: string): string[] {
-  return raw
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('#'))  // drop markdown headings
-    .map((l) => l.replace(/^[-*•]\s*/, ''))  // strip list markers
+function NotesExpand({ sections }: { sections: ReleaseSection[] }) {
+  if (sections.length === 0) return null
+  return (
+    <div className="space-y-3 px-4 pb-3 max-h-40 overflow-y-auto">
+      {sections.map((section, i) => {
+        const variant = sectionVariant(section.heading)
+        return (
+          <div key={i}>
+            {section.heading && (
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className={`w-1 h-1 rounded-full shrink-0 ${VARIANT_DOT[variant]}`} />
+                <span className={`text-[9px] font-semibold uppercase tracking-widest ${VARIANT_LABEL[variant]}`}>
+                  {section.heading}
+                </span>
+              </div>
+            )}
+            <ul className="space-y-1 pl-2.5">
+              {section.items.map((item, j) => (
+                <li key={j} className="flex gap-2 text-[11px] text-[#8888a8] leading-relaxed">
+                  <span className="text-[#3a3a55] shrink-0 mt-0.5 text-[9px]">—</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
+
+const isMac = navigator.platform.startsWith('Mac')
 
 export function UpdateModal() {
   const [state, setState] = useState<UpdateState>('idle')
   const [info, setInfo] = useState<UpdateInfo | null>(null)
   const [progress, setProgress] = useState<UpdateProgress | null>(null)
+  const [sections, setSections] = useState<ReleaseSection[]>([])
   const [notesOpen, setNotesOpen] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -40,6 +74,7 @@ export function UpdateModal() {
 
     window.electronAPI.onUpdateAvailable((u) => {
       setInfo(u)
+      setSections(parseStructuredNotes(u.notes ?? ''))
       setState('available')
     })
 
@@ -51,6 +86,7 @@ export function UpdateModal() {
 
     window.electronAPI.onUpdateDownloaded((u) => {
       setInfo(u)
+      setSections(parseStructuredNotes(u.notes ?? ''))
       setState('downloaded')
       setDismissed(false) // always surface the restart prompt
     })
@@ -64,7 +100,6 @@ export function UpdateModal() {
   if (state === 'idle') return null
   if (dismissed && state === 'available') return null
 
-  const notes = parseNotes(info?.notes ?? '')
   const pct = progress?.percent ?? 0
 
   return (
@@ -92,7 +127,7 @@ export function UpdateModal() {
           </div>
 
           {/* Patch notes toggle */}
-          {notes.length > 0 && (
+          {sections.length > 0 && (
             <>
               <button
                 onClick={() => setNotesOpen((v) => !v)}
@@ -101,16 +136,7 @@ export function UpdateModal() {
                 <span className="text-[10px]">{notesOpen ? '▴' : '▾'}</span>
                 {notesOpen ? 'Hide' : "What's new"}
               </button>
-              {notesOpen && (
-                <ul className="px-4 pb-3 space-y-1.5 max-h-36 overflow-y-auto">
-                  {notes.map((line, i) => (
-                    <li key={i} className="flex gap-2 text-xs text-[#8888a8]">
-                      <span className="text-[#3a3a55] shrink-0 mt-0.5">•</span>
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {notesOpen && <NotesExpand sections={sections} />}
             </>
           )}
 
@@ -151,13 +177,15 @@ export function UpdateModal() {
       {state === 'downloaded' && (
         <>
           <div className="px-4 pt-4 pb-3">
-            <p className="text-[13px] font-semibold text-white">Ready to install</p>
+            <p className="text-[13px] font-semibold text-white">New version ready</p>
             <p className="text-xs text-[#8888a8] mt-0.5">
-              {info?.version} downloaded — restart to apply the update
+              {isMac
+                ? `v${info?.version} — install manually on macOS`
+                : `${info?.version} downloaded — restart to apply the update`}
             </p>
           </div>
 
-          {notes.length > 0 && (
+          {sections.length > 0 && (
             <>
               <button
                 onClick={() => setNotesOpen((v) => !v)}
@@ -166,26 +194,27 @@ export function UpdateModal() {
                 <span className="text-[10px]">{notesOpen ? '▴' : '▾'}</span>
                 {notesOpen ? 'Hide' : "What's new"}
               </button>
-              {notesOpen && (
-                <ul className="px-4 pb-3 space-y-1.5 max-h-36 overflow-y-auto">
-                  {notes.map((line, i) => (
-                    <li key={i} className="flex gap-2 text-xs text-[#8888a8]">
-                      <span className="text-[#3a3a55] shrink-0 mt-0.5">•</span>
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {notesOpen && <NotesExpand sections={sections} />}
             </>
           )}
 
           <div className="px-4 pb-4 pt-2 border-t border-white/[0.06] flex gap-2">
-            <button
-              onClick={() => window.electronAPI?.installUpdate()}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
-            >
-              Restart &amp; Install
-            </button>
+            {isMac ? (
+              // macOS unsigned builds cannot auto-install — direct user to download the .dmg
+              <button
+                onClick={() => window.electronAPI?.openExternal('https://github.com/nfac09/canvas-tracker/releases/latest')}
+                className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+              >
+                Download latest .dmg ↗
+              </button>
+            ) : (
+              <button
+                onClick={() => window.electronAPI?.installUpdate()}
+                className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+              >
+                Restart &amp; Install
+              </button>
+            )}
             <button
               onClick={() => setDismissed(true)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#8888a8] hover:text-white hover:bg-white/[0.06] transition-colors"
@@ -205,7 +234,7 @@ export function UpdateModal() {
               onClick={() => window.electronAPI?.openExternal('https://github.com/nfac09/canvas-tracker/releases/latest')}
               className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors mt-0.5"
             >
-              Download manually ↗
+              Download latest version ↗
             </button>
           </div>
           <button
