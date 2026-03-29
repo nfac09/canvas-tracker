@@ -109,12 +109,23 @@ jobs:
       - name: Build and publish macOS artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npx tsc -b && npx vite build && npx electron-builder --mac --publish always
+          # Prefix signing secrets so they are never passed as empty strings to
+          # electron-builder.  An unset GitHub secret evaluates to "" here, and
+          # electron-builder treats any non-null CSC_LINK (even "") as a cert
+          # load attempt, requiring CSC_KEY_PASSWORD and failing.
+          # The run step below exports the unprefixed names only when non-empty.
+          _CSC_LINK: ${{ secrets.CSC_LINK }}
+          _CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          _APPLE_ID: ${{ secrets.APPLE_ID }}
+          _APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          _APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          [ -n "$_CSC_LINK" ]                     && export CSC_LINK="$_CSC_LINK"
+          [ -n "$_CSC_KEY_PASSWORD" ]              && export CSC_KEY_PASSWORD="$_CSC_KEY_PASSWORD"
+          [ -n "$_APPLE_ID" ]                      && export APPLE_ID="$_APPLE_ID"
+          [ -n "$_APPLE_APP_SPECIFIC_PASSWORD" ]   && export APPLE_APP_SPECIFIC_PASSWORD="$_APPLE_APP_SPECIFIC_PASSWORD"
+          [ -n "$_APPLE_TEAM_ID" ]                 && export APPLE_TEAM_ID="$_APPLE_TEAM_ID"
+          npx tsc -b && npx vite build && npx electron-builder --mac --publish always
 
   # ── Windows build (.exe) ────────────────────────────────────────────────────
   build-win:
