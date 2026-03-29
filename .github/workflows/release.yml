@@ -71,14 +71,38 @@ jobs:
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             const hasCert = !!process.env.CSC_LINK;
+
+            // ALWAYS remove identity:null on CI.
+            //
+            // With identity:null electron-builder skips codesign entirely, so
+            // every binary ships with its original linker-applied ad-hoc
+            // signature (flags=adhoc,linker-signed). Linker signatures do not
+            // seal the bundle: Info.plist is unbound and Sealed Resources is
+            // empty. macOS Gatekeeper then fails codesign --verify with
+            // 'code has no resources but signature indicates they must be
+            // present' and shows 'damaged' — which xattr stripping cannot fix
+            // because the problem is an invalid signature, not quarantine.
+            //
+            // Removing the override lets electron-builder run codesign --sign -
+            // on every binary, replacing linker signatures with proper bundle-
+            // aware ad-hoc signatures. The resulting app passes codesign --verify
+            // and opens normally after quarantine removal.
+            //
+            // hardenedRuntime stays false unless a real cert is present, so
+            // codesign runs as: codesign --sign - --force <binary>
+            // No timestamp server, no entitlements, no --options runtime needed.
+            delete pkg.build.mac.identity;
+
             if (hasCert) {
-              // Real certificate present — unlock signing and hardened runtime
-              delete pkg.build.mac.identity;
+              // Real Developer ID cert present — enable hardened runtime for
+              // notarization compatibility.
               pkg.build.mac.hardenedRuntime = true;
             }
+
             pkg.build.mac.notarize = hasCert && process.env.APPLE_TEAM_ID
               ? { teamId: process.env.APPLE_TEAM_ID }
               : false;
+
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 

@@ -43,15 +43,15 @@ Canvas Tracker imports your Canvas calendar and organizes everything you have du
 
 **macOS security warning on first launch**
 
-Because Canvas Tracker is not signed with an Apple Developer certificate, macOS will block it on first launch. The exact message depends on your macOS version:
+Canvas Tracker is not notarized with an Apple Developer certificate. On first launch macOS will show a security warning. Open **Terminal** and run:
 
-- **"Apple cannot verify…" / "unidentified developer"** — Go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**. Or right-click the app → **Open** → **Open**.
+```
+xattr -dr com.apple.quarantine "/Applications/Canvas Tracker.app"
+```
 
-- **"damaged and can't be opened"** (macOS Sequoia and later) — The UI bypass is disabled for unsigned apps. Open **Terminal** and run:
-  ```
-  xattr -cr "/Applications/Canvas Tracker.app"
-  ```
-  Then launch the app normally. You only need to do this once.
+Then launch normally. You only need to do this once.
+
+> **If you see "damaged and can't be opened" and the above command doesn't fix it**, you likely have a build from v1.0.x–v1.1.1. Those releases shipped with invalid linker-only code signatures. Download the latest release and re-install — the issue is corrected in v1.1.2 and later.
 
 ---
 
