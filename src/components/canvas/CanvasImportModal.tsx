@@ -119,9 +119,9 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
               <p className="font-medium text-slate-800 dark:text-slate-200">How to get your .ics file:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
                 <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Find <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> in the calendar view</li>
-                <li>Open the feed URL and save the page as a <strong className="text-slate-700 dark:text-slate-300">.ics file</strong></li>
-                <li>Upload it below</li>
+                <li>Scroll down in the <strong className="text-slate-700 dark:text-slate-300">right sidebar</strong></li>
+                <li>Click <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> to open the feed URL in your browser</li>
+                <li>Save the page as a <strong className="text-slate-700 dark:text-slate-300">.ics file</strong> and upload it below</li>
               </ol>
             </div>
             {/* Hidden input used only in non-Electron (browser) environments */}
@@ -149,9 +149,9 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
               <p className="font-medium text-slate-800 dark:text-slate-200">How to get your feed URL:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
                 <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Find <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> in the calendar view</li>
-                <li>Click <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the URL</li>
-                <li>Paste it below</li>
+                <li>Scroll down in the <strong className="text-slate-700 dark:text-slate-300">right sidebar</strong></li>
+                <li>Click <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong></li>
+                <li>Copy the URL and paste it below</li>
               </ol>
               <p className="text-slate-400 dark:text-slate-600 pt-1">
                 Your URL is fetched directly — it never leaves your device.
