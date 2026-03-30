@@ -62,7 +62,7 @@ export function AssignmentCard({ assignment, selectable = false, selected = fals
         {/* Course color left accent */}
         {course && !done && (
           <span
-            className="absolute left-0 top-0 bottom-0 w-[2px] rounded-l-lg"
+            className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg"
             style={{ backgroundColor: course.color }}
           />
         )}
@@ -132,7 +132,7 @@ export function AssignmentCard({ assignment, selectable = false, selected = fals
             {course && (
               <span className="flex items-center gap-[5px] text-[11px] text-slate-500 dark:text-white/30 font-medium shrink-0">
                 <span
-                  className="w-[5px] h-[5px] rounded-full shrink-0"
+                  className="w-[6px] h-[6px] rounded-full shrink-0"
                   style={{ backgroundColor: course.color }}
                 />
                 {course.name}

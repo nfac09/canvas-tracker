@@ -25,6 +25,20 @@ export const useStore = create<RootSlice>()(
     {
       name: 'canvas-tracker-v1',
       storage: createJSONStorage(() => localStorage),
+      // Deep-merge settings so that fields added in newer versions of the app
+      // (e.g. weekStartsOn) fall back to their defaults when rehydrating an
+      // older persisted store that was saved before those fields existed.
+      merge: (persisted, current) => {
+        const p = persisted as Partial<RootSlice>
+        return {
+          ...current,
+          ...p,
+          settings: {
+            ...current.settings,
+            ...(p.settings ?? {}),
+          },
+        }
+      },
       onRehydrateStorage: () => (_state) => {
         // Nothing to do on rehydrate — app starts empty for new users
       },

@@ -50,33 +50,31 @@ function AssignmentChip({
 }) {
   const isDone = assignment.status === 'done'
   const isOverdue = isPast && !isDone
+  const barColor = isOverdue ? '#ef4444' : (course?.color ?? '#6366f1')
 
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick() }}
       title={assignment.title}
+      style={isDone ? undefined : { borderLeftColor: barColor }}
       className={`
-        w-full text-left flex items-center gap-1 px-1.5 py-[2px] rounded text-[10px] leading-snug truncate
-        transition-colors duration-100
+        w-full text-left flex items-center gap-1.5 pl-2 pr-1.5 py-[3px] rounded text-[10px] leading-snug truncate
+        border-l-[3px] transition-all duration-100
         ${isDone
-          ? 'opacity-35'
+          ? 'opacity-35 border-l-transparent bg-slate-50 dark:bg-white/[0.04]'
           : isOverdue
-            ? 'bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40'
-            : 'bg-white dark:bg-white/[0.05] hover:bg-slate-100 dark:hover:bg-white/[0.1] border border-slate-100 dark:border-white/[0.06]'
+            ? 'bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-900/60 hover:shadow-sm'
+            : 'bg-white dark:bg-white/[0.1] border border-slate-100 dark:border-white/[0.12] hover:bg-slate-50 dark:hover:bg-white/[0.16] hover:shadow-sm'
         }
       `}
     >
-      <span
-        className="w-1 h-1 rounded-full shrink-0"
-        style={{ backgroundColor: course?.color ?? '#6366f1' }}
-      />
       <span
         className={`truncate ${
           isDone
             ? 'line-through text-slate-400 dark:text-white/30'
             : isOverdue
-              ? 'text-red-600 dark:text-red-400'
-              : 'text-slate-700 dark:text-white/70'
+              ? 'text-red-700 dark:text-red-300 font-medium'
+              : 'text-slate-700 dark:text-white/85'
         }`}
       >
         {assignment.title}
@@ -153,11 +151,17 @@ function DayPanel({
             const course = courseMap.get(a.courseId)
             const isDone = a.status === 'done'
             const isOverdue = isPast && !isDone
+            const dotColor = isOverdue ? '#ef4444' : (course?.color ?? '#6366f1')
             return (
               <button
                 key={a.id}
                 onClick={() => onEdit(a)}
-                className="w-full text-left flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.04] group transition-colors"
+                className={`w-full text-left flex items-start gap-2.5 px-2 py-2 rounded-lg transition-colors group
+                  ${isOverdue
+                    ? 'hover:bg-red-50 dark:hover:bg-red-950/30'
+                    : 'hover:bg-slate-50 dark:hover:bg-white/[0.07]'
+                  }
+                `}
               >
                 {/* Status circle */}
                 <span
@@ -167,13 +171,14 @@ function DayPanel({
                     e.stopPropagation()
                     setStatus(a.id, isDone ? 'not_started' : 'done')
                   }}
+                  style={isDone ? { boxShadow: '0 0 6px #10b98166' } : undefined}
                   className={`
-                    mt-0.5 w-[14px] h-[14px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
+                    mt-0.5 w-[14px] h-[14px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all
                     ${isDone
                       ? 'bg-emerald-500 border-emerald-500'
                       : isOverdue
-                        ? 'border-red-400 hover:border-red-500'
-                        : 'border-slate-300 dark:border-white/20 hover:border-indigo-400'
+                        ? 'border-red-400 dark:border-red-500 hover:border-red-500 dark:hover:border-red-400'
+                        : 'border-slate-300 dark:border-white/25 hover:border-indigo-400 dark:hover:border-indigo-400'
                     }
                   `}
                 >
@@ -187,19 +192,22 @@ function DayPanel({
                 <div className="flex-1 min-w-0">
                   {/* Course indicator + title */}
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    {course && (
+                    {!isDone && (
                       <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ backgroundColor: course.color }}
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: dotColor,
+                          boxShadow: `0 0 5px ${dotColor}99`,
+                        }}
                       />
                     )}
                     <span
                       className={`text-[12px] font-medium truncate leading-snug ${
                         isDone
-                          ? 'line-through text-slate-400 dark:text-white/25'
+                          ? 'line-through text-slate-400 dark:text-white/28'
                           : isOverdue
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-slate-800 dark:text-white/80'
+                            ? 'text-red-700 dark:text-red-300'
+                            : 'text-slate-800 dark:text-white/90'
                       }`}
                     >
                       {a.title}
@@ -207,7 +215,9 @@ function DayPanel({
                   </div>
                   {/* Course name + time */}
                   {(course || a.dueTime) && (
-                    <p className="text-[10px] text-slate-400 dark:text-white/25 truncate">
+                    <p className={`text-[10px] truncate ${
+                      isDone ? 'text-slate-400 dark:text-white/20' : 'text-slate-400 dark:text-white/40'
+                    }`}>
                       {[course?.name, a.dueTime].filter(Boolean).join(' · ')}
                     </p>
                   )}
@@ -238,7 +248,8 @@ function DayPanel({
 export function CalendarPage() {
   const assignments = useStore((s) => s.assignments)
   const courses = useStore((s) => s.courses)
-  const weekStartsOn = useStore((s) => s.settings.weekStartsOn)
+  // Fallback to 1 (Monday) if weekStartsOn is missing from an older persisted store
+  const weekStartsOn = useStore((s) => s.settings.weekStartsOn ?? 1)
 
   const now = new Date()
   const [currentYear, setCurrentYear] = useState(now.getFullYear())

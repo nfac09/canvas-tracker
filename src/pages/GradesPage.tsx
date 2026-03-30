@@ -86,7 +86,7 @@ function SectionPanel({
       >
         <span
           className="w-[3px] h-[11px] rounded-full shrink-0"
-          style={{ backgroundColor: badgeColor, opacity: 0.65 }}
+          style={{ backgroundColor: badgeColor, opacity: 0.9 }}
         />
         <span className="text-[10px] font-semibold text-slate-500 dark:text-white/35 uppercase tracking-widest group-hover:text-slate-700 dark:group-hover:text-white/55 transition-colors duration-100">
           {title}
@@ -397,12 +397,13 @@ export function GradesPage() {
                 {summary && (
                   <div className="flex items-center gap-3 px-3.5 py-2 border-b border-slate-50 dark:border-white/[0.03]">
                     <div className="flex-1">
-                      <div className="w-full h-[3px] bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="w-full h-[4px] bg-slate-100 dark:bg-white/[0.07] rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${summary.pct}%`,
                             backgroundColor: gradeBarColor(summary.pct),
+                            boxShadow: `0 0 6px ${gradeBarColor(summary.pct)}88`,
                           }}
                         />
                       </div>
@@ -463,12 +464,13 @@ export function GradesPage() {
                       {overallSummary.pct}%
                     </span>
                   </div>
-                  <div className="w-full h-[3px] bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden mb-2">
+                  <div className="w-full h-[4px] bg-slate-100 dark:bg-white/[0.07] rounded-full overflow-hidden mb-2">
                     <div
                       className="h-full rounded-full transition-all duration-300"
                       style={{
                         width: `${overallSummary.pct}%`,
                         backgroundColor: gradeBarColor(overallSummary.pct),
+                        boxShadow: `0 0 6px ${gradeBarColor(overallSummary.pct)}88`,
                       }}
                     />
                   </div>

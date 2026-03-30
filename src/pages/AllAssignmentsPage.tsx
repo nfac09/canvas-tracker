@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { selectAllVisible } from '../store/selectors'
@@ -139,11 +139,23 @@ export function AllAssignmentsPage() {
   }
 
   const allVisibleSelected = visible.length > 0 && visible.every((a) => selectedIds.has(a.id))
+  const someVisibleSelected = selectedIds.size > 0 && !allVisibleSelected
+  const selectAllRef = useRef<HTMLInputElement>(null)
 
-  function handleSelectAll() {
+  // Keep the checkbox indeterminate state in sync (can't be set via prop)
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someVisibleSelected
+    }
+  }, [someVisibleSelected])
+
+  function handleSelectAllCheckbox() {
     if (allVisibleSelected) {
+      // All selected → deselect all (stay in selection mode)
       setSelectedIds(new Set())
     } else {
+      // None or partial → select all (and enter selection mode)
+      setSelectionMode(true)
       setSelectedIds(new Set(visible.map((a) => a.id)))
     }
   }
@@ -223,17 +235,32 @@ export function AllAssignmentsPage() {
           {/* Divider */}
           <div className="w-px h-4 bg-slate-200 dark:bg-white/[0.08] shrink-0" />
 
-          {/* Select mode toggle */}
-          <button
-            onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
-            className={`text-[11px] font-medium px-2.5 py-[5px] rounded-md transition-all duration-100 ease-out active:scale-[0.93] shrink-0
-              ${selectionMode
-                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-indigo-900/25'
-                : 'text-slate-500 dark:text-white/35 hover:text-slate-800 dark:hover:text-white/70 hover:bg-slate-100/80 dark:hover:bg-white/[0.07]'
-              }`}
-          >
-            {selectionMode ? 'Cancel' : 'Select'}
-          </button>
+          {/* Select-all checkbox */}
+          <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none group">
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              checked={allVisibleSelected}
+              onChange={handleSelectAllCheckbox}
+              disabled={visible.length === 0}
+              className="w-3.5 h-3.5 rounded border-slate-300 dark:border-white/[0.2] text-indigo-600 focus:ring-indigo-500/40 bg-white dark:bg-white/[0.04] accent-indigo-600 disabled:opacity-30 cursor-pointer"
+            />
+            <span className="text-[11px] font-medium text-slate-500 dark:text-white/35 group-hover:text-slate-700 dark:group-hover:text-white/55 transition-colors">
+              {selectedIds.size > 0
+                ? `${selectedIds.size} of ${visible.length} selected`
+                : 'Select all'
+              }
+            </span>
+            {selectionMode && (
+              <button
+                onClick={(e) => { e.preventDefault(); exitSelectionMode() }}
+                className="ml-0.5 w-4 h-4 flex items-center justify-center rounded text-[10px] text-slate-400 dark:text-white/25 hover:text-slate-700 dark:hover:text-white/60 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+                title="Exit selection (Esc)"
+              >
+                ✕
+              </button>
+            )}
+          </label>
         </div>
       </div>
 
@@ -266,21 +293,6 @@ export function AllAssignmentsPage() {
       {/* ── Bulk action bar ─────────────────────────────────────── */}
       {selectionMode && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 px-2 py-2 rounded-2xl bg-white dark:bg-[#18182e] border border-slate-200 dark:border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.14)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.6)] whitespace-nowrap">
-
-          {/* Count + select-all */}
-          <div className="flex items-center gap-2 px-2">
-            <span className="text-[12px] font-semibold text-slate-700 dark:text-white/70 tabular-nums">
-              {selectedIds.size} selected
-            </span>
-            <button
-              onClick={handleSelectAll}
-              className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 transition-colors"
-            >
-              {allVisibleSelected ? 'Deselect all' : `Select all (${visible.length})`}
-            </button>
-          </div>
-
-          <div className="w-px h-5 bg-slate-200 dark:bg-white/[0.1] mx-1" />
 
           {/* Actions */}
           <button
