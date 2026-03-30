@@ -116,11 +116,11 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
         {tab === 'file' && (
           <div className="space-y-3">
             <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
-              <p className="font-medium text-slate-800 dark:text-slate-200">How to export your Canvas calendar:</p>
+              <p className="font-medium text-slate-800 dark:text-slate-200">How to get your .ics file:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
                 <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Find the calendar export option — look for a small icon or menu in the calendar view, or go to <strong className="text-slate-700 dark:text-slate-300">Account → Settings</strong> and find the Calendar section</li>
-                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Export Calendar</strong> and save the .ics file</li>
+                <li>Find <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> in the calendar view</li>
+                <li>Open the feed URL and save the page as a <strong className="text-slate-700 dark:text-slate-300">.ics file</strong></li>
                 <li>Upload it below</li>
               </ol>
             </div>
@@ -146,11 +146,11 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
         {tab === 'url' && (
           <div className="space-y-3">
             <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
-              <p className="font-medium text-slate-800 dark:text-slate-200">How to get your Canvas feed URL:</p>
+              <p className="font-medium text-slate-800 dark:text-slate-200">How to get your feed URL:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
                 <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Find the calendar feed option — look for a small icon or menu in the calendar view, or go to <strong className="text-slate-700 dark:text-slate-300">Account → Settings</strong> and find the Calendar section</li>
-                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the link (if it starts with <strong className="text-slate-700 dark:text-slate-300">webcal://</strong>, that's fine — paste it as-is)</li>
+                <li>Find <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> in the calendar view</li>
+                <li>Click <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the URL</li>
                 <li>Paste it below</li>
               </ol>
               <p className="text-slate-400 dark:text-slate-600 pt-1">
