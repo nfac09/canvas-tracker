@@ -40,6 +40,12 @@ declare global {
       getVersion:      () => Promise<string>
       /** Fetch a Canvas iCal feed URL via the main process — no CORS proxy, no third-party routing */
       fetchIcalUrl:    (url: string) => Promise<string>
+      /**
+       * Open a native file picker from the main process and return the selected
+       * .ics file contents as a string, or null if the user canceled.
+       * Avoids the renderer-freeze caused by programmatic <input type="file"> clicks.
+       */
+      openFileDialog:  () => Promise<string | null>
     }
   }
 }

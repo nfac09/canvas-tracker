@@ -18,6 +18,7 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<CanvasImportSession | null>(null)
+  // Fallback ref used only in browser (non-Electron) environments
   const fileRef = useRef<HTMLInputElement>(null)
 
   function reset() {
@@ -32,7 +33,8 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
     onClose()
   }
 
-  function handleFile(e: ChangeEvent<HTMLInputElement>) {
+  // Browser fallback: read file via FileReader (not used in packaged Electron app)
+  function handleFileFallback(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setError('')
@@ -48,6 +50,29 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
       }
     }
     reader.readAsText(file)
+  }
+
+  async function handleUploadClick() {
+    if (window.electronAPI?.openFileDialog) {
+      // Electron: open the native file picker from the main process.
+      // This avoids blocking the renderer thread (which causes beachball on macOS).
+      setLoading(true)
+      setError('')
+      setResult(null)
+      try {
+        const text = await window.electronAPI.openFileDialog()
+        if (text === null) return // user canceled — no error, no state change
+        const session = importFromIcal(text, 'ics_file')
+        setResult(session)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to parse file.')
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // Browser / dev fallback: use hidden <input type="file">
+      fileRef.current?.click()
+    }
   }
 
   async function handleUrl() {
@@ -93,25 +118,27 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
               <p className="font-medium text-slate-800 dark:text-slate-200">How to export your Canvas calendar:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
-                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → click <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Click the <strong className="text-slate-700 dark:text-slate-300">gear icon</strong> (top right of calendar)</li>
-                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Export</strong> and save the .ics file</li>
+                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
+                <li>Find the calendar export option — look for a small icon or menu in the calendar view, or go to <strong className="text-slate-700 dark:text-slate-300">Account → Settings</strong> and find the Calendar section</li>
+                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Export Calendar</strong> and save the .ics file</li>
                 <li>Upload it below</li>
               </ol>
             </div>
+            {/* Hidden input used only in non-Electron (browser) environments */}
             <input
               ref={fileRef}
               type="file"
               accept=".ics,text/calendar"
               className="hidden"
-              onChange={handleFile}
+              onChange={handleFileFallback}
             />
             <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full border-2 border-dashed border-slate-200 dark:border-white/[0.08] rounded-xl py-8 text-sm text-slate-400 dark:text-slate-500 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              onClick={handleUploadClick}
+              disabled={loading}
+              className="w-full border-2 border-dashed border-slate-200 dark:border-white/[0.08] rounded-xl py-8 text-sm text-slate-400 dark:text-slate-500 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="block text-2xl mb-2">📂</span>
-              Click to choose an .ics file
+              {loading ? 'Reading file…' : 'Click to choose an .ics file'}
             </button>
           </div>
         )}
@@ -121,9 +148,9 @@ export function CanvasImportModal({ open, onClose }: CanvasImportModalProps) {
             <div className="bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] rounded-xl p-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">
               <p className="font-medium text-slate-800 dark:text-slate-200">How to get your Canvas feed URL:</p>
               <ol className="list-decimal list-inside space-y-0.5 text-slate-500 dark:text-slate-500">
-                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → click <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
-                <li>Click the <strong className="text-slate-700 dark:text-slate-300">gear icon</strong> (top right of calendar)</li>
-                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the link</li>
+                <li>Open <strong className="text-slate-700 dark:text-slate-300">Canvas</strong> → go to <strong className="text-slate-700 dark:text-slate-300">Calendar</strong></li>
+                <li>Find the calendar feed option — look for a small icon or menu in the calendar view, or go to <strong className="text-slate-700 dark:text-slate-300">Account → Settings</strong> and find the Calendar section</li>
+                <li>Choose <strong className="text-slate-700 dark:text-slate-300">Calendar Feed</strong> and copy the link (if it starts with <strong className="text-slate-700 dark:text-slate-300">webcal://</strong>, that's fine — paste it as-is)</li>
                 <li>Paste it below</li>
               </ol>
               <p className="text-slate-400 dark:text-slate-600 pt-1">

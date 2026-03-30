@@ -24,4 +24,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion:     ()      => ipcRenderer.invoke('get-version'),
   // Fetch a Canvas iCal feed URL via the main process (no CORS, no proxy)
   fetchIcalUrl:   (url)   => ipcRenderer.invoke('fetch-ical-url', url),
+  // Open a native file picker; returns .ics text content, or null if canceled.
+  // Using the main process avoids the renderer-freeze bug with <input type="file">.
+  openFileDialog: ()      => ipcRenderer.invoke('open-file-dialog'),
 })

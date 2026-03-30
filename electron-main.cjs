@@ -1,7 +1,8 @@
 // Canvas Tracker — Electron main process
 'use strict'
 
-const { app, BrowserWindow, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron')
+const fs = require('fs')
 const path = require('path')
 const { autoUpdater } = require('electron-updater')
 
@@ -74,11 +75,30 @@ ipcMain.handle('open-external', (_e, url) => shell.openExternal(url))
 ipcMain.handle('get-version', () => app.getVersion())
 
 /**
+ * Open a native file picker (main process) and return the .ics file contents.
+ * Returns null if the user cancels without selecting a file.
+ * Using dialog.showOpenDialog from the main process avoids the renderer-freeze
+ * bug caused by programmatically clicking a hidden <input type="file">.
+ */
+ipcMain.handle('open-file-dialog', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Choose Canvas Calendar Export',
+    filters: [{ name: 'iCal Calendar', extensions: ['ics'] }],
+    properties: ['openFile'],
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+  return fs.promises.readFile(result.filePaths[0], 'utf8')
+})
+
+/**
  * Fetch a Canvas iCal feed URL from the main process (Node.js).
  * No CORS restrictions apply here — the URL is fetched directly and
  * never routed through a third-party proxy.
  */
-ipcMain.handle('fetch-ical-url', async (_e, url) => {
+ipcMain.handle('fetch-ical-url', async (_e, rawUrl) => {
+  // Normalize webcal:// → https:// (Canvas feed URLs often use this scheme)
+  const url = rawUrl.replace(/^webcal:\/\//i, 'https://')
+
   // Validate URL before making any network call
   let parsed
   try {
